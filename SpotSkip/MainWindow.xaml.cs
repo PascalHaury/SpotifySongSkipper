@@ -1,27 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-
-using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Linq;
 
 using System.IO;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
-//using Ookii;
-using System.Collections;
 using System.Diagnostics;
 
 namespace SpotSkip
@@ -31,20 +19,16 @@ namespace SpotSkip
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string FilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\BlockList.xml";
+        private string BlockListFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\BlockListV2.xml";
         private string LogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\" + DateTime.Today.ToShortDateString() + "BlockLog.log";
         private string ErrorLogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\" + DateTime.Today.ToShortDateString() + "ErrorLog.log";
-        DispatcherTimer SongChecker = new DispatcherTimer();
-        string Artist = string.Empty;
-        string Song = string.Empty;
-        string Combo = string.Empty;
-        string oldCombo = string.Empty;
+        DispatcherTimer LocalSpotifySongChecker = new DispatcherTimer();
+        DispatcherTimer SongCheckerAPI = new DispatcherTimer();
+        string CurrentlyPlaying = string.Empty;
+        string[] Separator = new string[] { " - " };
 
-        int BlockCounter = 0;
-        int SongCounter = 0;
         bool hidden = true;
-        bool boot = true;
-
+        bool paused = true;
         [DllImport("user32.dll", SetLastError = true)]
         public static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, IntPtr extraInfo);
         public const int VK_MEDIA_NEXT_TRACK = 0xB0;
@@ -53,21 +37,74 @@ namespace SpotSkip
         public const int KEYEVENTF_EXTENDEDKEY = 0x0001; //Key down flag
         public const int KEYEVENTF_KEYUP = 0x0002; //Key up flag
 
+        private int SongCounter = 0;
+        private int BlockedSongCounter = 0;
+
+        private List<BlockType> LastBlockenum = new List<BlockType>();
+        private List<string> LastBlock = new List<string>();
+
+        //DEBUG VARS
+        bool Debug = false;
+        DateTime Started;
+        DateTime Done;
+        TimeSpan min = new TimeSpan(1, 0, 0);
+        TimeSpan max = new TimeSpan(0, 0, 0);
+        List<TimeSpan> AvgCycleTime = new List<TimeSpan>();
+        int FileAccessCounter = 0;
+
+        BlockListManager BLM = null;
+        bool BlockListManagerActive = false;
         public MainWindow()
         {
             InitializeComponent();
-            this.Height = 110;
-            SongChecker.Interval = new TimeSpan(0, 0, 0, 0,500);
-            SongChecker.Tick += SongChecker_Tick;
-            createDefaultTable(FilePath);
-            SongChecker.Start();
+            initializeApplication();
+            
         }
 
-        private void SongChecker_Tick(object sender, EventArgs e)
-        {
-            var proc = Process.GetProcessesByName("Spotify").FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle));
-            bool block = false;
+        #region AppSystem
+        private enum BlockType { SongBlock, ArtistBlock, ComboBlock, none };
 
+        private bool initializeApplication()
+        {
+            try
+            {
+                if (Debug)
+                {
+                    ExpandWindowButton.IsEnabled = true;
+                    ExpandWindowButton.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    ExpandWindowButton.IsEnabled = false;
+                    ExpandWindowButton.Visibility = Visibility.Hidden;
+                }
+                this.Height = 105;
+                LocalSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, 500);
+                LocalSpotifySongChecker.Tick += LocalSpotifySongChecker_Tick;
+                createDefaultTable(BlockListFilePath);
+                LocalSpotifySongChecker.Start();
+
+                BlockListBox.Items.Add("");
+                BlockListBox.Items.Add("");
+                BlockListBox.Items.Add("");
+                BlockListBox.Items.Add("");
+                BlockListBox.Items.Add("");
+                BlockListBox.Items.Add("");
+
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+                return false;
+            }
+        }
+
+        private void LocalSpotifySongChecker_Tick(object sender, EventArgs e)
+        {
+            if (Debug) Started = DateTime.Now;
+            var proc = Process.GetProcessesByName("Spotify").FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle));
             if (proc == null)
             {
                 this.Title = "Spotify not started...";
@@ -75,6 +112,7 @@ namespace SpotSkip
                 BlockSongButton.IsEnabled = false;
                 BlockComboButton.IsEnabled = false;
                 CurrentlyPlayingTextBox.Text = "Spotify is not running!";
+                paused = true;
             }
             else if (string.Equals(proc.MainWindowTitle, "Spotify", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -83,128 +121,127 @@ namespace SpotSkip
                 BlockSongButton.IsEnabled = false;
                 BlockComboButton.IsEnabled = false;
                 CurrentlyPlayingTextBox.Text = "Paused";
+                paused = true;
             }
             else
             {
-                this.Title = "Spotify running...";
+                if (!Debug) this.Title = "Spotify running...";
                 BlockArtistButton.IsEnabled = true;
                 BlockSongButton.IsEnabled = true;
                 BlockComboButton.IsEnabled = true;
-                CurrentlyPlayingTextBox.Text = proc.MainWindowTitle;
-                Combo = proc.MainWindowTitle;
-                Artist = proc.MainWindowTitle.Split('-')[0].Remove(proc.MainWindowTitle.Split('-')[0].Length-1, 1);
-                Song = proc.MainWindowTitle.Split('-')[1].Remove(0, 1);
-                Combo = Artist + " - " + Song;
-                XElement root = XElement.Parse(File.ReadAllText(FilePath));
-
-
-                var blocksong = root.Descendants("Song");
-                var blockArtist = root.Descendants("Artist");
-                var blockCombo = root.Descendants("Combo");
-                bool c = false; 
-
-                if (boot)
-                {
-                    BlockListBox.Items.Add("Successfully loaded " + (blocksong.Count() + blockArtist.Count() + blockCombo.Count()).ToString() + " block-Rules.");
-                    BlockListBox.Items.Add("Blocked Songs: " + blocksong.Count());
-                    BlockListBox.Items.Add("Blocked Artists: " + blockArtist.Count());
-                    BlockListBox.Items.Add("Blocked Combos: " + blockCombo.Count());
-                    if (!File.Exists(LogFilePath) || File.ReadAllLines(LogFilePath).Count() < 1)
-                    {
-                        File.AppendAllText(LogFilePath, "Successfully loaded " + (blocksong.Count() + blockArtist.Count() + blockCombo.Count()).ToString() + " block-Rules." + "\r\n");
-                        File.AppendAllText(LogFilePath, "Blocked Songs: " + blocksong.Count() + "\r\n");
-                        File.AppendAllText(LogFilePath, "Blocked Artists: " + blockArtist.Count() + "\r\n");
-                        File.AppendAllText(LogFilePath, "Blocked Combos: " + blockCombo.Count() + "\r\n");
-                    }
-                    BlockListBox.Items.Add(FilePath);
-                    boot = false;
-                }
-
-                foreach (var Combo_ in blockCombo)
-                {
-                    if (Combo == Combo_.Value)
-                    {
-                        c = true;
-                        block = true;
-                        keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY, IntPtr.Zero);
-                        keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
-                        BlockCounter++;
-                        //SongCounter++;
-                        //this.Title = "Combo block " + DateTime.Now.ToLongTimeString();
-                        BlockListBox.Items.Add("[Combo Block] " + Combo + " [" + DateTime.Now.ToLongTimeString() + "]");
-                        BlockListBox.SelectedIndex = BlockListBox.Items.Count - 1;
-                        BlockListBox.ScrollIntoView(BlockListBox.SelectedItem);
-                        List<string> lines = File.ReadAllLines(LogFilePath).ToList();
-                        lines = lines.GetRange(0, lines.Count - 1);
-                        lines.Add("[" + DateTime.Now.ToShortTimeString() + "]\tComboSkip\tArtist: " + Artist + "\tSong: " + Song);
-                        File.WriteAllLines(LogFilePath, lines.ToArray());
-                    }
-                }
-
-                if (c == false)
-                {
-                    foreach (var Song_ in blocksong)
-                    {
-                        if (Song == Song_.Value)
-                        {
-                            block = true;
-                            keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY, IntPtr.Zero);
-                            keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
-                            BlockCounter++;
-                            //SongCounter++;
-                            //this.Title = "Song block " + DateTime.Now.ToLongTimeString();
-                            BlockListBox.Items.Add("[Song Block] " + Combo + " [" + DateTime.Now.ToLongTimeString() + "]");
-                            BlockListBox.SelectedIndex = BlockListBox.Items.Count - 1;
-                            BlockListBox.ScrollIntoView(BlockListBox.SelectedItem);
-                            List<string> lines = File.ReadAllLines(LogFilePath).ToList();
-                            lines = lines.GetRange(0, lines.Count - 1);
-                            lines.Add("[" + DateTime.Now.ToShortTimeString() + "]\tSongSkip\tArtist: " + Artist + "\tSong: " + Song);
-                            File.WriteAllLines(LogFilePath, lines.ToArray());
-                        }
-                    }
-                    foreach (var Artist_ in blockArtist)
-                    {
-                        if (Artist == Artist_.Value)
-                        {
-                            block = true;
-                            keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY, IntPtr.Zero);
-                            keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
-                            BlockCounter++;
-                            //SongCounter++;
-                            //this.Title = "Artist block " + DateTime.Now.ToLongTimeString();
-                            BlockListBox.Items.Add("[Artist Block] " + Combo + " [" + DateTime.Now.ToLongTimeString() + "]");
-                            BlockListBox.SelectedIndex = BlockListBox.Items.Count - 1;
-                            BlockListBox.ScrollIntoView(BlockListBox.SelectedItem);
-                            List<string> lines = File.ReadAllLines(LogFilePath).ToList();
-                            lines = lines.GetRange(0, lines.Count - 1);
-                            lines.Add("[" + DateTime.Now.ToShortTimeString() + "]\tArtistSkip\tArtist: " + Artist + "\tSong: " + Song);
-                            File.WriteAllLines(LogFilePath, lines.ToArray());
-                        }
-                    }
-                }
-                
-                c = false;
-                if (oldCombo != Combo)
+                if (CurrentlyPlaying != proc.MainWindowTitle || paused)
                 {
                     SongCounter++;
-                }
-                if (!block)
-                {
-                    if (File.ReadLines(LogFilePath).Last().Contains("]\tPlaying\t\tArtist: " + Artist + "\tSong: " + Song) == false)
+                    CurrentlyPlaying = proc.MainWindowTitle;
+                    CurrentlyPlayingTextBox.Text = CurrentlyPlaying;
+                    if (CurrentSongBlocked(CurrentlyPlaying))
                     {
-                        File.AppendAllText(LogFilePath, "[" + DateTime.Now.ToShortTimeString() + "]\tPlaying\t\tArtist: " + Artist + "\tSong: " + Song + "\r\n");
+                        BlockedSongCounter++;
+                        SkipSong();
                     }
+                    paused = false;
+                    BlockCounterTextBlock.Text = BlockedSongCounter + " Blocked";
                 }
-                if (BlockCounter == 1)
+            }
+            if (Debug)
+            {
+                Done = DateTime.Now;
+                AvgCycleTime.Add(Done - Started);
+                if (AvgCycleTime.Last() < min)
                 {
-                    BlockCounterTextBlock.Text = "Blocked " + BlockCounter + "/" + SongCounter + " Song";
+                    min = AvgCycleTime.Last();
+                }
+                if (AvgCycleTime.Last() > max)
+                {
+                    max = AvgCycleTime.Last();
+                }
+                TimeSpan timeaverage = TimeSpan.FromMilliseconds(AvgCycleTime.Average(i => i.TotalMilliseconds));
+                if (Debug) BlockListBox.Items[0] = "Last Cycle Time: " + AvgCycleTime.Last().TotalMilliseconds.ToString() + "ms";
+                if (Debug) BlockListBox.Items[1] = "AVG: " + timeaverage.TotalMilliseconds.ToString() + "ms over " + AvgCycleTime.Count + "samples";
+                if (Debug) BlockListBox.Items[2] = "MIN: " + min.TotalMilliseconds.ToString() + "ms";
+                if (Debug) BlockListBox.Items[3] = "MAX: " + max.TotalMilliseconds.ToString() + "ms";
+                if (Debug) BlockListBox.Items[5] = "FileAccessCounter: " + FileAccessCounter;
+                if (AvgCycleTime.Count > 50)
+                {
+                    AvgCycleTime.Clear();
+                }
+                if (LastBlock.Count > 0)
+                {
+                    if (Debug)
+                    {
+                        BlockListBox.Items[4] = "Last Block: " + LastBlock.Last().ToString() + ", Type: " + LastBlockenum.Last().ToString();
+                    }
+                    else
+                    {
+                        BlockListBox.Items[0] = "Last Block: " + LastBlock.Last().ToString() + ", Type: " + LastBlockenum.Last().ToString();
+                    }
                 }
                 else
                 {
-                    BlockCounterTextBlock.Text = "Blocked " + BlockCounter + "/" + SongCounter + " Songs";
+                    if (Debug)
+                    {
+                        BlockListBox.Items[4] = "Last Block: none, Type: none";
+                    }
+                    else
+                    {
+                        BlockListBox.Items[0] = "Last Block: none, Type: none";
+                    }
                 }
-                oldCombo = Combo;
             }
+
+            //this.Title = "AVG: " + timeaverage.TotalMilliseconds.ToString("0.000") + "ms MIN: " + min.TotalMilliseconds.ToString("0.000") + "ms, MAX: " + max.TotalMilliseconds.ToString("0.000") + "ms";
+        }
+
+        private bool CurrentSongBlocked(string CurrentlyPlaying)
+        {
+            if (Debug) FileAccessCounter++;
+            XElement root = XElement.Parse(File.ReadAllText(BlockListFilePath));
+            string Song = CurrentlyPlaying.Split('-')[1];
+            string Artist = CurrentlyPlaying.Split('-')[0];
+            Song = Song.Remove(0, 1);
+            Artist = Artist.Remove(Artist.Length - 1, 1);
+            string Combo = Artist + " - " + Song;
+
+            var blocksong = root.Descendants("Song");
+            var blockArtist = root.Descendants("Artist");
+            var blockCombo = root.Descendants("Combo");
+
+            foreach (var _Combo in blockCombo)
+            {
+                if (Combo == _Combo.Value)
+                {
+                    LastBlock.Add(Combo);
+                    LastBlockenum.Add(BlockType.ComboBlock);
+                    return true;
+                }
+            }
+
+            foreach (var _Song in blocksong)
+            {
+                if (Song == _Song.Value)
+                {
+                    LastBlock.Add(Song);
+                    LastBlockenum.Add(BlockType.SongBlock);
+                    return true;
+                }
+            }
+
+            foreach (var _Artist in blockArtist)
+            {
+                if (Artist == _Artist.Value)
+                {
+                    LastBlock.Add(Artist);
+                    LastBlockenum.Add(BlockType.ArtistBlock);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void SkipSong()
+        {
+            keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY, IntPtr.Zero);
+            keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
         }
 
         private bool createDefaultTable(string path_to_File)
@@ -217,20 +254,23 @@ namespace SpotSkip
             {
                 try
                 {
+                    if (Debug) FileAccessCounter++;
                     XmlDocument doc = new XmlDocument();
                     XmlNode docnode = doc.CreateXmlDeclaration("1.0", "utf-8", null);
                     doc.AppendChild(docnode);
 
                     XmlNode BlockListNode = doc.CreateElement("BlockList");
+                    XmlNode APIComboNode = doc.CreateElement("SpotifyAPIData");
                     XmlNode BlockSongNode = doc.CreateElement("Songs");
                     XmlNode BlockArtistNode = doc.CreateElement("Artists");
                     XmlNode BlockComboNode = doc.CreateElement("Combos");
+
+                    BlockListNode.AppendChild(APIComboNode);
                     BlockListNode.AppendChild(BlockSongNode);
                     BlockListNode.AppendChild(BlockArtistNode);
                     BlockListNode.AppendChild(BlockComboNode);
 
                     doc.AppendChild(BlockListNode);
-
                     doc.Save(path_to_File);
                     return true;
                 }
@@ -242,141 +282,193 @@ namespace SpotSkip
             }
             return false;
         }
+        #endregion
 
+
+        #region HelperFunctions
+        private bool LogError(Exception _ex)
+        {
+            try
+            {
+                File.AppendAllLines(ErrorLogFilePath, new String[] { _ex.ToString() });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(_ex.ToString(), "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        private bool AddEntry(string Entry, BlockType BT)
+        {
+            try
+            {
+                if (Debug) FileAccessCounter++;
+                string type = string.Empty;
+                XmlDocument doc = new XmlDocument();
+                XmlAttribute Date = doc.CreateAttribute("Date");
+                XmlAttribute Song = doc.CreateAttribute("Song");
+                XmlAttribute Artist = doc.CreateAttribute("Artist");
+
+                switch (BT)
+                {
+                    case BlockType.ArtistBlock:
+                        type = "Artist";
+                        Date.Value = DateTime.Now.ToString();
+                        Song.Value = " - ";
+                        Artist.Value = Entry;
+                        break;
+                    case BlockType.ComboBlock:
+                        type = "Combo";
+                        Date.Value = DateTime.Now.ToString();
+                        Song.Value = Entry.Split('-')[1].Remove(0, 1);
+                        Artist.Value = Entry.Split('-')[0].Remove(Entry.Split('-')[0].Length - 1, 1);
+                        break;
+                    case BlockType.SongBlock:
+                        type = "Song";
+                        Date.Value = DateTime.Now.ToString();
+                        Song.Value = Entry;
+                        Artist.Value = " - ";
+                        break;
+                }
+                doc.Load(BlockListFilePath);
+                
+                XmlNode BlockNode = doc.SelectNodes("/BlockList/" + type + "s")[0];// .ChildNodes[1];
+                XmlNode BlockEntry = doc.CreateElement(type);
+                BlockEntry.Attributes.Append(Song);
+                BlockEntry.Attributes.Append(Artist);
+                BlockEntry.Attributes.Append(Date);
+                BlockEntry.InnerText = Entry;
+                BlockNode.AppendChild(BlockEntry);
+                doc.Save(BlockListFilePath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+                return false;
+            }
+        }
+
+        private bool removeEntry(string Entry, BlockType BT)
+        {
+            try
+            {
+                FileAccessCounter++;
+                string NodeSelect = string.Empty;
+                switch (BT)
+                {
+                    case BlockType.ArtistBlock:
+                        NodeSelect = "BlockList/Artists/Artist[text()='" + Entry + "']";
+                        break;
+                    case BlockType.ComboBlock:
+                        NodeSelect = "BlockList/Combos/Combo[text()='" + Entry + "']";
+                        break;
+                    case BlockType.SongBlock:
+                        NodeSelect = "BlockList/Songs/Song[text()='" + Entry + "']";
+                        break;
+                }
+
+                XmlDocument doc = new XmlDocument();
+                doc.Load(BlockListFilePath);
+                XmlNodeList RemVar = doc.SelectNodes(NodeSelect);
+                foreach (XmlNode node in RemVar)
+                {
+                    node.ParentNode.RemoveChild(node);
+                }
+                doc.Save(BlockListFilePath);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+                return false;
+            }
+        }
+        #endregion
+
+
+        #region GUI
         private void BlockArtistButton_Click(object sender, RoutedEventArgs e)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(FilePath);
-            XmlNode BlockNode = doc.SelectNodes("/BlockList/Artists")[0];// .ChildNodes[1];
-            XmlNode BlockArtist = doc.CreateElement("Artist");
-            BlockArtist.InnerText = Artist;
-            BlockNode.AppendChild(BlockArtist);
-            doc.Save(FilePath);
+            string Artist = CurrentlyPlaying.Split('-')[0];
+            AddEntry(Artist.Remove(Artist.Length - 1, 1), BlockType.ArtistBlock);
+            SkipSong();
         }
 
         private void BlockSongButton_Click(object sender, RoutedEventArgs e)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(FilePath);
-            XmlNode BlockNode = doc.SelectNodes("/BlockList/Songs")[0]; //doc.ChildNodes[1];
-            XmlNode BlockSong = doc.CreateElement("Song");
-            BlockSong.InnerText = Song;
-            BlockNode.AppendChild(BlockSong);
-            doc.Save(FilePath);
+            string Song = CurrentlyPlaying.Split('-')[1];
+            AddEntry(Song.Remove(0, 1), BlockType.SongBlock);
+            SkipSong();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(FilePath);
-            XmlNode BlockNode = doc.SelectNodes("/BlockList/Combos")[0]; //.ChildNodes[1];
-            XmlNode BlockCombo = doc.CreateElement("Combo");
-            BlockCombo.InnerText = Artist + " - " + Song;
-            BlockNode.AppendChild(BlockCombo);
-            doc.Save(FilePath);
+            string Song = CurrentlyPlaying.Split('-')[1];
+            string Artist = CurrentlyPlaying.Split('-')[0];
+            Song = Song.Remove(0, 1);
+            Artist = Artist.Remove(Artist.Length - 1, 1);
+            string Combo = Artist + " - " + Song;
+            AddEntry(Combo, BlockType.ComboBlock);
+            SkipSong();
         }
 
         private void Hide_Show_BlockList_Click(object sender, RoutedEventArgs e)
         {
-            if (hidden == true)
+            if (Debug)
             {
-                Hide_Show_BlockList.Content = "↑";
-                this.Height = 320;
-                hidden = false;
-            }
-            else
-            {
-                Hide_Show_BlockList.Content = "↓";
-                this.Height = 110;
-                hidden = true;
+                if (hidden == true)
+                {
+                    ExpandWindowButton.Content = "↑";
+                    this.Height = 320;
+                    hidden = false;
+                }
+                else
+                {
+                    ExpandWindowButton.Content = "↓";
+                    this.Height = 135;
+                    hidden = true;
+                }
             }
         }
 
         private void BlockListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (BlockListBox.SelectedItem.ToString() == FilePath)
+            if (BlockListBox.SelectedItem.ToString() == BlockListFilePath)
             {
-                Process.Start(Path.GetDirectoryName(FilePath));
+                Process.Start(Path.GetDirectoryName(BlockListFilePath));
             }
         }
 
         private void BlockListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            try
-            {
-                XmlDocument doc = new XmlDocument();
-                doc.Load(FilePath);
-                if (BlockListBox.SelectedItem.ToString().StartsWith("[Combo Block]"))
-                {
-                    string rem = BlockListBox.SelectedItem.ToString().Replace("[Combo Block] ", "");
-                    rem = rem.Remove((rem.ToString().Count() - 11), 11);
-                    var RemCombo = doc.SelectNodes("BlockList/Combos/Combo[text()='" + rem + "']");
-                    if (RemCombo.Count > 0)
-                    {
-                        RemoveBlockButton.IsEnabled = true;
-                    }
-                    else
-                    {
-                        RemoveBlockButton.IsEnabled = false;
-                    }
-                }
-                else if (BlockListBox.SelectedItem.ToString().StartsWith("[Song Block]"))
-                {
-                    string rem = BlockListBox.SelectedItem.ToString().Replace("[Song Block] ", "");
-                    rem = rem.Remove((rem.ToString().Count() - 11), 11);
-                    var RemSong = doc.SelectNodes("BlockList/Combos/Song[text()='" + rem + "']");
-                    if (RemSong.Count > 0)
-                    {
-                        RemoveBlockButton.IsEnabled = true;
-                    }
-                    else
-                    {
-                        RemoveBlockButton.IsEnabled = false;
-                    }
-                }
-                else if (BlockListBox.SelectedItem.ToString().StartsWith("[Artist Block]"))
-                {
-                    string rem = BlockListBox.SelectedItem.ToString().Replace("[Artist Block] ", "");
-                    rem = rem.Remove((rem.ToString().Count() - 11), 11);
-                    var RemArtist = doc.SelectNodes("BlockList/Combos/Artist[text()='" + rem + "']");
-                    if (RemArtist.Count > 0)
-                    {
-                        RemoveBlockButton.IsEnabled = true;
-                    }
-                    else
-                    {
-                        RemoveBlockButton.IsEnabled = false;
-                    }
-                }
-                else
-                {
-                    RemoveBlockButton.IsEnabled = false;
-                }
-            }
-            catch (Exception ex)
-            { }
-
         }
 
         private void RemoveBlockButton_Click(object sender, RoutedEventArgs e)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(FilePath);
-            string rem = BlockListBox.SelectedItem.ToString().Replace("[Combo Block] ", "");
-            rem = rem.ToString().Replace("[Song Block] ", "");
-            rem = rem.ToString().Replace("[Artist Block] ", "");
-            rem = rem.Remove((rem.ToString().Count() - 11), 11);
-            var RemVar = doc.SelectNodes("BlockList/Combos/Combo[text()='" + rem + "']");
-            foreach (XmlNode node in RemVar)
+           if (!BlockListManagerActive)
             {
-                node.ParentNode.RemoveChild(node);
+                BLM = new BlockListManager();
+                BLM.Show();
+                BlockListManagerActive = true;
+                OpenBlockListManagerButton.Content = "Close BLM";
             }
-            int tmp = BlockListBox.SelectedIndex;
-            BlockListBox.SelectedIndex = 0;
-            BlockListBox.Items.RemoveAt(tmp);
-            BlockListBox.SelectedIndex = BlockListBox.Items.Count - 1;
-            BlockCounter--;
-            doc.Save(FilePath);
+            else
+            {
+                BLM.Close();
+                BLM = null;
+                BlockListManagerActive = false; ;
+                OpenBlockListManagerButton.Content = "Open BLM";
+            }
+        }
+        #endregion
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (Debug) this.Title = "Width: " + this.Width + " Height: " + this.Height;
         }
     }
 }

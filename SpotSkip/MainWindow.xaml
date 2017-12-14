@@ -5,22 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpotSkip"
         mc:Ignorable="d"
-        Title="MainWindow" Height="320" Width="436" ResizeMode="CanMinimize">
+        Title="MainWindow" Height="320" Width="436" SizeChanged="Window_SizeChanged" ResizeMode="CanMinimize">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="8*"/>
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
         <TextBox x:Name="CurrentlyPlayingTextBox" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="400" IsReadOnly="True" Grid.ColumnSpan="2"/>
-        <Button x:Name="BlockArtistButton" Content="Block Artist" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" Width="75" Click="BlockArtistButton_Click" IsEnabled="False"/>
-        <Button x:Name="BlockSongButton" Content="Block Song" HorizontalAlignment="Left" Margin="90,38,0,0" VerticalAlignment="Top" Width="75" Click="BlockSongButton_Click" IsEnabled="False"/>
-        <Button x:Name="BlockComboButton" Content="Block Combo" HorizontalAlignment="Left" Margin="170,38,0,0" VerticalAlignment="Top" Width="75" IsEnabled="False" Click="Button_Click"/>
-        <TextBlock x:Name="BlockCounterTextBlock" HorizontalAlignment="Left" Margin="250,40,0,0" TextWrapping="Wrap" Text="Blocked 0/0 Songs" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="140"/>
-        <GroupBox Header="BlockList" HorizontalAlignment="Left" Height="159" Margin="10,80,0,0" VerticalAlignment="Top" Width="408" Grid.ColumnSpan="2" Cursor="Help">
-            <ListBox x:Name="BlockListBox" HorizontalAlignment="Left" Height="139" VerticalAlignment="Top" Width="398" Margin="0,0,-2,-2" MouseDoubleClick="BlockListBox_MouseDoubleClick" SelectionChanged="BlockListBox_SelectionChanged"/>
+        <Button x:Name="BlockArtistButton" Content="Block Artist" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="75" Click="BlockArtistButton_Click" IsEnabled="False"/>
+        <Button x:Name="BlockSongButton" Content="Block Song" HorizontalAlignment="Left" Margin="90,40,0,0" VerticalAlignment="Top" Width="75" Click="BlockSongButton_Click" IsEnabled="False"/>
+        <Button x:Name="BlockComboButton" Content="Block Combo" HorizontalAlignment="Left" Margin="170,40,0,0" VerticalAlignment="Top" Width="75" IsEnabled="False" Click="Button_Click"/>
+        <TextBlock x:Name="BlockCounterTextBlock" HorizontalAlignment="Left" Margin="35,42,0,0" TextWrapping="Wrap" Text="0 Blocked" VerticalAlignment="Top" Width="62" Grid.Column="1"/>
+        <GroupBox Header="BlockList" HorizontalAlignment="Left" Height="159" Margin="10,100,0,0" VerticalAlignment="Top" Width="400" Grid.ColumnSpan="2" Cursor="Help">
+            <ListBox x:Name="BlockListBox" HorizontalAlignment="Left" Height="139" VerticalAlignment="Top" Width="390" Margin="0,0,-2,-2" MouseDoubleClick="BlockListBox_MouseDoubleClick" SelectionChanged="BlockListBox_SelectionChanged"/>
         </GroupBox>
-        <Button x:Name="Hide_Show_BlockList" Content="↓" Grid.Column="1" HorizontalAlignment="Right" Margin="0,38,20,0" VerticalAlignment="Top" Width="20" FontWeight="Bold" FontFamily="Calibri" Click="Hide_Show_BlockList_Click"/>
-        <Button x:Name="RemoveBlockButton" Content="Remove Block" HorizontalAlignment="Left" Margin="10,244,0,0" VerticalAlignment="Top" Width="82" Click="RemoveBlockButton_Click"/>
-
+        <Button x:Name="ExpandWindowButton" Content="↓" HorizontalAlignment="Right" Margin="0,65,283,0" VerticalAlignment="Top" Width="20" FontWeight="Bold" FontFamily="Calibri" Click="Hide_Show_BlockList_Click"/>
+        <Button x:Name="OpenBlockListManagerButton" Content="Open BLM" HorizontalAlignment="Left" Margin="250,40,0,0" VerticalAlignment="Top" Width="75" Click="RemoveBlockButton_Click" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>
