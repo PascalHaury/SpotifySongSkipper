@@ -27,7 +27,6 @@ namespace SpotSkip
         string CurrentlyPlaying = string.Empty;
         string[] Separator = new string[] { " - " };
 
-        bool hidden = true;
         bool paused = true;
         [DllImport("user32.dll", SetLastError = true)]
         public static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, IntPtr extraInfo);
@@ -44,14 +43,7 @@ namespace SpotSkip
         private List<string> LastBlock = new List<string>();
 
         //DEBUG VARS
-        bool Debug = false;
-        DateTime Started;
-        DateTime Done;
-        TimeSpan min = new TimeSpan(1, 0, 0);
-        TimeSpan max = new TimeSpan(0, 0, 0);
-        List<TimeSpan> AvgCycleTime = new List<TimeSpan>();
-        int FileAccessCounter = 0;
-
+        
         BlockListManager BLM = null;
         bool BlockListManagerActive = false;
         public MainWindow()
@@ -68,29 +60,11 @@ namespace SpotSkip
         {
             try
             {
-                if (Debug)
-                {
-                    ExpandWindowButton.IsEnabled = true;
-                    ExpandWindowButton.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    ExpandWindowButton.IsEnabled = false;
-                    ExpandWindowButton.Visibility = Visibility.Hidden;
-                }
                 this.Height = 105;
                 LocalSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, 500);
                 LocalSpotifySongChecker.Tick += LocalSpotifySongChecker_Tick;
                 createDefaultTable(BlockListFilePath);
                 LocalSpotifySongChecker.Start();
-
-                BlockListBox.Items.Add("");
-                BlockListBox.Items.Add("");
-                BlockListBox.Items.Add("");
-                BlockListBox.Items.Add("");
-                BlockListBox.Items.Add("");
-                BlockListBox.Items.Add("");
-
 
                 return true;
             }
@@ -103,7 +77,6 @@ namespace SpotSkip
 
         private void LocalSpotifySongChecker_Tick(object sender, EventArgs e)
         {
-            if (Debug) Started = DateTime.Now;
             var proc = Process.GetProcessesByName("Spotify").FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle));
             if (proc == null)
             {
@@ -125,7 +98,7 @@ namespace SpotSkip
             }
             else
             {
-                if (!Debug) this.Title = "Spotify running...";
+                
                 BlockArtistButton.IsEnabled = true;
                 BlockSongButton.IsEnabled = true;
                 BlockComboButton.IsEnabled = true;
@@ -143,58 +116,11 @@ namespace SpotSkip
                     BlockCounterTextBlock.Text = BlockedSongCounter + " Blocked";
                 }
             }
-            if (Debug)
-            {
-                Done = DateTime.Now;
-                AvgCycleTime.Add(Done - Started);
-                if (AvgCycleTime.Last() < min)
-                {
-                    min = AvgCycleTime.Last();
-                }
-                if (AvgCycleTime.Last() > max)
-                {
-                    max = AvgCycleTime.Last();
-                }
-                TimeSpan timeaverage = TimeSpan.FromMilliseconds(AvgCycleTime.Average(i => i.TotalMilliseconds));
-                if (Debug) BlockListBox.Items[0] = "Last Cycle Time: " + AvgCycleTime.Last().TotalMilliseconds.ToString() + "ms";
-                if (Debug) BlockListBox.Items[1] = "AVG: " + timeaverage.TotalMilliseconds.ToString() + "ms over " + AvgCycleTime.Count + "samples";
-                if (Debug) BlockListBox.Items[2] = "MIN: " + min.TotalMilliseconds.ToString() + "ms";
-                if (Debug) BlockListBox.Items[3] = "MAX: " + max.TotalMilliseconds.ToString() + "ms";
-                if (Debug) BlockListBox.Items[5] = "FileAccessCounter: " + FileAccessCounter;
-                if (AvgCycleTime.Count > 50)
-                {
-                    AvgCycleTime.Clear();
-                }
-                if (LastBlock.Count > 0)
-                {
-                    if (Debug)
-                    {
-                        BlockListBox.Items[4] = "Last Block: " + LastBlock.Last().ToString() + ", Type: " + LastBlockenum.Last().ToString();
-                    }
-                    else
-                    {
-                        BlockListBox.Items[0] = "Last Block: " + LastBlock.Last().ToString() + ", Type: " + LastBlockenum.Last().ToString();
-                    }
-                }
-                else
-                {
-                    if (Debug)
-                    {
-                        BlockListBox.Items[4] = "Last Block: none, Type: none";
-                    }
-                    else
-                    {
-                        BlockListBox.Items[0] = "Last Block: none, Type: none";
-                    }
-                }
-            }
-
             //this.Title = "AVG: " + timeaverage.TotalMilliseconds.ToString("0.000") + "ms MIN: " + min.TotalMilliseconds.ToString("0.000") + "ms, MAX: " + max.TotalMilliseconds.ToString("0.000") + "ms";
         }
 
         private bool CurrentSongBlocked(string CurrentlyPlaying)
         {
-            if (Debug) FileAccessCounter++;
             XElement root = XElement.Parse(File.ReadAllText(BlockListFilePath));
             string Song = CurrentlyPlaying.Split('-')[1];
             string Artist = CurrentlyPlaying.Split('-')[0];
@@ -254,7 +180,6 @@ namespace SpotSkip
             {
                 try
                 {
-                    if (Debug) FileAccessCounter++;
                     XmlDocument doc = new XmlDocument();
                     XmlNode docnode = doc.CreateXmlDeclaration("1.0", "utf-8", null);
                     doc.AppendChild(docnode);
@@ -293,7 +218,7 @@ namespace SpotSkip
                 File.AppendAllLines(ErrorLogFilePath, new String[] { _ex.ToString() });
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 MessageBox.Show(_ex.ToString(), "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
@@ -304,7 +229,6 @@ namespace SpotSkip
         {
             try
             {
-                if (Debug) FileAccessCounter++;
                 string type = string.Empty;
                 XmlDocument doc = new XmlDocument();
                 XmlAttribute Date = doc.CreateAttribute("Date");
@@ -355,7 +279,6 @@ namespace SpotSkip
         {
             try
             {
-                FileAccessCounter++;
                 string NodeSelect = string.Empty;
                 switch (BT)
                 {
@@ -416,37 +339,6 @@ namespace SpotSkip
             SkipSong();
         }
 
-        private void Hide_Show_BlockList_Click(object sender, RoutedEventArgs e)
-        {
-            if (Debug)
-            {
-                if (hidden == true)
-                {
-                    ExpandWindowButton.Content = "↑";
-                    this.Height = 320;
-                    hidden = false;
-                }
-                else
-                {
-                    ExpandWindowButton.Content = "↓";
-                    this.Height = 135;
-                    hidden = true;
-                }
-            }
-        }
-
-        private void BlockListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (BlockListBox.SelectedItem.ToString() == BlockListFilePath)
-            {
-                Process.Start(Path.GetDirectoryName(BlockListFilePath));
-            }
-        }
-
-        private void BlockListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-        }
-
         private void RemoveBlockButton_Click(object sender, RoutedEventArgs e)
         {
            if (!BlockListManagerActive)
@@ -468,7 +360,6 @@ namespace SpotSkip
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (Debug) this.Title = "Width: " + this.Width + " Height: " + this.Height;
         }
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpotSkip"
         mc:Ignorable="d"
-        Title="MainWindow" Height="320" Width="436" SizeChanged="Window_SizeChanged" ResizeMode="CanMinimize">
+        Title="MainWindow" Height="105" Width="436" SizeChanged="Window_SizeChanged" ResizeMode="CanMinimize">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="8*"/>
@@ -16,10 +16,6 @@
         <Button x:Name="BlockSongButton" Content="Block Song" HorizontalAlignment="Left" Margin="90,40,0,0" VerticalAlignment="Top" Width="75" Click="BlockSongButton_Click" IsEnabled="False"/>
         <Button x:Name="BlockComboButton" Content="Block Combo" HorizontalAlignment="Left" Margin="170,40,0,0" VerticalAlignment="Top" Width="75" IsEnabled="False" Click="Button_Click"/>
         <TextBlock x:Name="BlockCounterTextBlock" HorizontalAlignment="Left" Margin="35,42,0,0" TextWrapping="Wrap" Text="0 Blocked" VerticalAlignment="Top" Width="62" Grid.Column="1"/>
-        <GroupBox Header="BlockList" HorizontalAlignment="Left" Height="159" Margin="10,100,0,0" VerticalAlignment="Top" Width="400" Grid.ColumnSpan="2" Cursor="Help">
-            <ListBox x:Name="BlockListBox" HorizontalAlignment="Left" Height="139" VerticalAlignment="Top" Width="390" Margin="0,0,-2,-2" MouseDoubleClick="BlockListBox_MouseDoubleClick" SelectionChanged="BlockListBox_SelectionChanged"/>
-        </GroupBox>
-        <Button x:Name="ExpandWindowButton" Content="↓" HorizontalAlignment="Right" Margin="0,65,283,0" VerticalAlignment="Top" Width="20" FontWeight="Bold" FontFamily="Calibri" Click="Hide_Show_BlockList_Click"/>
         <Button x:Name="OpenBlockListManagerButton" Content="Open BLM" HorizontalAlignment="Left" Margin="250,40,0,0" VerticalAlignment="Top" Width="75" Click="RemoveBlockButton_Click" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>
