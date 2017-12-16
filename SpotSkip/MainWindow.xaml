@@ -5,16 +5,55 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpotSkip"
         mc:Ignorable="d"
-        Title="MainWindow" Height="105" Width="436" ResizeMode="CanMinimize" Closing="Window_Closing">
+        Title="MainWindow" Height="115" Width="530" ResizeMode="CanMinimize" Closing="Window_Closing" Background="#FF3F3F46" WindowStyle="None"
+        >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <TextBox x:Name="CurrentlyPlayingTextBox" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="400" IsReadOnly="True"/>
-        <Button x:Name="BlockArtistButton" Content="Block Artist" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="75" Click="BlockArtistButton_Click" IsEnabled="False"/>
-        <Button x:Name="BlockSongButton" Content="Block Song" HorizontalAlignment="Left" Margin="90,40,0,0" VerticalAlignment="Top" Width="75" Click="BlockSongButton_Click" IsEnabled="False"/>
-        <Button x:Name="BlockComboButton" Content="Block Combo" HorizontalAlignment="Left" Margin="170,40,0,0" VerticalAlignment="Top" Width="75" IsEnabled="False" Click="BlockComboButton_Click"/>
-        <TextBlock x:Name="BlockCounterTextBlock" HorizontalAlignment="Left" Margin="330,42,0,0" TextWrapping="Wrap" Text="0 Blocked" VerticalAlignment="Top" Width="80"/>
-        <Button x:Name="BlockListManagerButton" Content="Open BLM" HorizontalAlignment="Left" Margin="250,40,0,0" VerticalAlignment="Top" Width="75" Click="BlockListManagerButton_Click"/>
+        <TextBox x:Name="CurrentlyPlayingTextBox" HorizontalAlignment="Left" Height="23" Margin="10,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="495" IsReadOnly="True"/>
+        <Button x:Name="BlockArtistButton" Content="Block Artist" HorizontalAlignment="Left" Margin="10,76,0,0" VerticalAlignment="Top" Width="105" Click="BlockArtistButton_Click" IsEnabled="False"/>
+        <Button x:Name="BlockSongButton" Content="Block Song" HorizontalAlignment="Left" Margin="120,76,0,0" VerticalAlignment="Top" Width="105" Click="BlockSongButton_Click" IsEnabled="False"/>
+        <Button x:Name="BlockComboButton" Content="Block Combo" HorizontalAlignment="Left" Margin="230,76,0,0" VerticalAlignment="Top" Width="105" IsEnabled="False" Click="BlockComboButton_Click"/>
+        <TextBlock x:Name="BlockCounterTextBlock" HorizontalAlignment="Left" Margin="450,83,0,0" TextWrapping="Wrap" Text="0 Blocked" VerticalAlignment="Top" Width="80" Foreground="#FFBABABA"/>
+        <Button x:Name="BlockListManagerButton" Content="Open BLM" HorizontalAlignment="Left" Margin="340,76,0,0" VerticalAlignment="Top" Width="105" Click="BlockListManagerButton_Click"/>
+        <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="30" Width="430" Foreground="#FFBABABA" FontSize="20" Margin="35,0,0,0" MouseDown="TitleTextBlock_MouseDown"/>
+        <Image x:Name="CloseButtonImage" HorizontalAlignment="Left" Height="30
+               " Margin="500,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="CloseButtonImage_MouseLeftButtonUp">
+            <Image.Style>
+                <Style TargetType="{x:Type Image}">
+                    <Setter Property="Source" Value="/Images/close.png"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Source" Value="/Images/close_mouseover.bmp"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Image.Style>
+        </Image>
+        <Image x:Name="MinimizeButtonImage" HorizontalAlignment="Left" Height="30" Margin="470,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="MinimizeButtonImage_MouseLeftButtonUp">
+            <Image.Style>
+                <Style TargetType="{x:Type Image}">
+                    <Setter Property="Source" Value="/Images/minimize.bmp"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Source" Value="/Images/minimize_mouseover.bmp"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Image.Style>
+        </Image>
+        <Image x:Name="SpotSkipIcon" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="30">
+            <Image.Style>
+                <Style TargetType="{x:Type Image}">
+                    <Setter Property="Source" Value="/Images/SpotSkipIco.png"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Source" Value="/Images/SpotSkipIco_mouseover.png"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Image.Style>
+        </Image>
     </Grid>
 </Window>

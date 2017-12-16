@@ -74,38 +74,38 @@ namespace SpotSkip
             var blockCombo = root.Descendants("Combo");
             foreach (var song in blocksong)
             {
-                if (song.HasAttributes)
-                {
-                    SongBlockListBox.Items.Add("\"" + song.Value + "\" | " + song.Attribute("Date").Value);
-                }
-                else
-                {
+                //if (song.HasAttributes)
+                //{
+                //    SongBlockListBox.Items.Add("\"" + song.Value + "\" | " + song.Attribute("Date").Value);
+                //}
+                //else
+                //{
                     SongBlockListBox.Items.Add("\"" + song.Value + "\"");
-                }
+                //}
             }
 
             foreach (var Artist in blockArtist)
             {
-                if (Artist.HasAttributes)
-                {
-                    ArtistBlockListBox.Items.Add("\"" + Artist.Value + "\" | " + Artist.Attribute("Date").Value);
-                }
-                else
-                {
+                //if (Artist.HasAttributes)
+                //{
+                //    ArtistBlockListBox.Items.Add("\"" + Artist.Value + "\" | " + Artist.Attribute("Date").Value);
+                //}
+                //else
+                //{
                     ArtistBlockListBox.Items.Add("\"" + Artist.Value + "\"");
-                }
+                //}
             }
 
             foreach (var Combo in blockCombo)
             {
-                if (Combo.HasAttributes)
-                {
-                    ComboBlockListBox.Items.Add("\"" + Combo.Value + "\" | " + Combo.Attribute("Date").Value);
-                }
-                else
-                {
+                //if (Combo.HasAttributes)
+                //{
+                //    ComboBlockListBox.Items.Add("\"" + Combo.Value + "\" | " + Combo.Attribute("Date").Value);
+                //}
+                //else
+                //{
                     ComboBlockListBox.Items.Add("\"" + Combo.Value + "\"");
-                }
+                //}
             }
             SongGrid.Header = "[" + blocksong.Count() + "] Songs blocked";
             ArtistGrid.Header = "[" + blockArtist.Count() + "] Artists blocked";
@@ -200,6 +200,19 @@ namespace SpotSkip
             {
                 return false;
             }
+        }
+
+        private void TitleTextBlock_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
+            }
+        }
+
+        private void CloseButtonImage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            this.Close();
         }
     }
 }

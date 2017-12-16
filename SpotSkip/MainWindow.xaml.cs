@@ -45,7 +45,6 @@ namespace SpotSkip
         {
             try
             {
-                this.Height = 105;
                 LocalSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, 500);
                 LocalSpotifySongChecker.Tick += LocalSpotifySongChecker_Tick;
                 xmlWriter.createDefaultTable(vars.BlockListFilePath);
@@ -89,7 +88,7 @@ namespace SpotSkip
             if (SpotifyProcess == null)   //Spotify isn't started
             {
                 SpotifyStatus = "Spotify is not started...";
-                this.Title = SpotifyStatus;
+                TitleTextBlock.Text = SpotifyStatus;
                 CurrentlyPlayingTextBox.Text = SpotifyStatus;
                 disableControls();
                 IsPlaying = false;
@@ -97,7 +96,7 @@ namespace SpotSkip
             else if (string.Equals(SpotifyProcess.MainWindowTitle, "Spotify", StringComparison.InvariantCultureIgnoreCase))   //Spotify is started but Paused
             {
                 SpotifyStatus = "Spotify is paused...";
-                this.Title = SpotifyStatus;
+                TitleTextBlock.Text = SpotifyStatus;
                 CurrentlyPlayingTextBox.Text = SpotifyStatus;
                 disableControls();
                 IsPlaying = false;
@@ -109,7 +108,7 @@ namespace SpotSkip
                 if (CurrentlyPlaying != SpotifyProcess.MainWindowTitle || !IsPlaying)   
                 {
                     SpotifyStatus = "Spotify is playing music...";
-                    this.Title = SpotifyStatus;
+                    TitleTextBlock.Text = SpotifyStatus;
                     CurrentlyPlaying = SpotifyProcess.MainWindowTitle;
                     CurrentlyPlayingTextBox.Text = CurrentlyPlaying;
                     if (xmlReader.searchForEntry(CurrentlyPlaying))
@@ -182,6 +181,23 @@ namespace SpotSkip
             {
                 BLM.Close();
                 BLM = null;
+            }
+        }
+        private void MinimizeButtonImage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void CloseButtonImage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            Environment.Exit(0x01);
+        }
+
+        private void TitleTextBlock_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
             }
         }
     }
