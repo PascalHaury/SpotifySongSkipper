@@ -25,12 +25,12 @@ namespace SpotSkip
         private Variables vars = new Variables();
 
         DispatcherTimer LocalSpotifySongChecker = new DispatcherTimer();
-        string CurrentlyPlaying = string.Empty;
+        private string CurrentlyPlaying = string.Empty;
+        private string SpotifyStatus = string.Empty;
 
-        private int SongCounter = 0;
         private int BlockedSongCounter = 0;
 
-        string status = string.Empty;
+        private bool IsPlaying = false;
 
         BlockListManager BLM = null;
         bool BlockListManagerActive = false;
@@ -85,28 +85,32 @@ namespace SpotSkip
             }
 
             //Get the Current song playing on Spotify
-            var proc = Process.GetProcessesByName("Spotify").FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle));
-            if (proc == null)   //Spotify isn't started
+            var SpotifyProcess = Process.GetProcessesByName("Spotify").FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle));
+            if (SpotifyProcess == null)   //Spotify isn't started
             {
-                status = "Spotify is not started...";
-                this.Title = status;
-                CurrentlyPlayingTextBox.Text = status;
+                SpotifyStatus = "Spotify is not started...";
+                this.Title = SpotifyStatus;
+                CurrentlyPlayingTextBox.Text = SpotifyStatus;
                 disableControls();
+                IsPlaying = false;
             }
-            else if (string.Equals(proc.MainWindowTitle, "Spotify", StringComparison.InvariantCultureIgnoreCase))   //Spotify is started but Paused
+            else if (string.Equals(SpotifyProcess.MainWindowTitle, "Spotify", StringComparison.InvariantCultureIgnoreCase))   //Spotify is started but Paused
             {
-                status = "Spotify is paused...";
-                this.Title = status;
-                CurrentlyPlayingTextBox.Text = status;
+                SpotifyStatus = "Spotify is paused...";
+                this.Title = SpotifyStatus;
+                CurrentlyPlayingTextBox.Text = SpotifyStatus;
                 disableControls();
+                IsPlaying = false;
             }
             else    //Spotify is Started and a song is Playing
             {
+                
                 enableControls();
-                if (CurrentlyPlaying != proc.MainWindowTitle)
+                if (CurrentlyPlaying != SpotifyProcess.MainWindowTitle || !IsPlaying)   
                 {
-                    SongCounter++;
-                    CurrentlyPlaying = proc.MainWindowTitle;
+                    SpotifyStatus = "Spotify is playing music...";
+                    this.Title = SpotifyStatus;
+                    CurrentlyPlaying = SpotifyProcess.MainWindowTitle;
                     CurrentlyPlayingTextBox.Text = CurrentlyPlaying;
                     if (xmlReader.searchForEntry(CurrentlyPlaying))
                     {
@@ -114,9 +118,9 @@ namespace SpotSkip
                         keyEmu.SkipSong();
                     }
                     BlockCounterTextBlock.Text = BlockedSongCounter + " Blocked";
+                    IsPlaying = true;
                 }
             }
-            //this.Title = "AVG: " + timeaverage.TotalMilliseconds.ToString("0.000") + "ms MIN: " + min.TotalMilliseconds.ToString("0.000") + "ms, MAX: " + max.TotalMilliseconds.ToString("0.000") + "ms";
         }
 
         private void enableControls()
@@ -144,18 +148,14 @@ namespace SpotSkip
         {
             string Song = CurrentlyPlaying.Split('-')[1];   //get the current song
             xmlWriter.AddEntry(Song.Remove(0, 1), FileIO_Write.BlockType.SongBlock);    //add the song top the blocklist
-            keyEmu.SkipSong();//skip the current song
+            keyEmu.SkipSong();  //skip the current song
         }
 
         private void BlockComboButton_Click(object sender, RoutedEventArgs e)
         {
-            //string Song = CurrentlyPlaying.Split('-')[1];   //get the current song
-            //string Artist = CurrentlyPlaying.Split('-')[0]; //get the current artist
-            //Song = Song.Remove(0, 1);                       //remove some blank spaces from the Split operation
-            //Artist = Artist.Remove(Artist.Length - 1, 1);   //remove some blank spaces from the Split operation
-            string Combo = CurrentlyPlaying;
-            xmlWriter.AddEntry(Combo, FileIO_Write.BlockType.ComboBlock);
-            keyEmu.SkipSong();
+            string Combo = CurrentlyPlaying;    //get the current song/artist combo
+            xmlWriter.AddEntry(Combo, FileIO_Write.BlockType.ComboBlock);   //add the song/artist combo to the blocklist
+            keyEmu.SkipSong();  //skip the current song
         }
 
         private void BlockListManagerButton_Click(object sender, RoutedEventArgs e)
@@ -178,7 +178,7 @@ namespace SpotSkip
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (BLM != null)
+            if (BLM != null)    //Close the BlockListManager if it is active
             {
                 BLM.Close();
                 BLM = null;
