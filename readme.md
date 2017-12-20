@@ -2,7 +2,7 @@ Who doesn't know it. Everyone has some artists or songs who you hate.
 Spotify hasn't implemented a feature where you can remove an artist or 
 a song from your life... But here comes SpotSkip!
 
-![alt tag](https://raw.githubusercontent.com/theHaury/SpotifySongSkipper/master/SpotSkip/readme_pictures/SpotSkip.PNG "SpotSkip Maing Window")
+![alt tag](https://raw.githubusercontent.com/theHaury/SpotifySongSkipper/master/readme_pictures/SpotSkip.PNG "SpotSkip Maing Window")
 
 SpotSkip lets you choose what you want to hear.
 It creates a block-list in your MyDocuments/SpotSkip Folder. If a 
@@ -35,7 +35,7 @@ Features:
 	entry you want to unblock and press unblock. The Song
 	will now no longer be skipped.
 	
-	![alt tag](https://raw.githubusercontent.com/theHaury/SpotifySongSkipper/master/SpotSkip/readme_pictures/BlockListManager.PNG "SpotSkip BlockListManager")
+	![alt tag](https://raw.githubusercontent.com/theHaury/SpotifySongSkipper/master/readme_pictures/BlockListManager.PNG "SpotSkip BlockListManager")
 	
 What you should know:
 
