@@ -1,0 +1,58 @@
+﻿<Window x:Class="SpotSkip.BlockListManager"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SpotSkip"
+        mc:Ignorable="d"
+        Title="BlockListManager" Height="311" Width="780" ResizeMode="CanMinimize" Background="#FF3F3F46" WindowStyle="None">
+    <Grid>
+        <GroupBox x:Name="SongGrid" Header="Song Block" Margin="10,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
+            <Grid Margin="0,0,0,0">
+                <ListBox x:Name="SongBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top">
+                    <ListBoxItem Content="Test" FontSize="12"/>
+                </ListBox>
+                <Button x:Name="UnblockSongButton" Content="Unblock Song" Margin="0,200,0,0" Height="19" HorizontalAlignment="Left" Width="228" Click="UnblockSongButton_Click"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="ArtistGrid" Header="Artist Block" Margin="265,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
+            <Grid Margin="0,0,0,0">
+                <ListBox x:Name="ArtistBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top" FontSize="12"/>
+                <Button x:Name="UnblockArtistButton" Content="Unblock Artist" Margin="0,200,0,0" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="228" Click="UnblockArtistButton_Click"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="ComboGrid" Header="Combo Block" Margin="520,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
+            <Grid Margin="0,0,0,0">
+                <ListBox x:Name="ComboBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top" FontSize="12"/>
+                <Button x:Name="UnblockComboButton" Content="Unblock Combo" Margin="0,200,0,0" Height="19" Click="UnblockComboButton_Click" HorizontalAlignment="Left" Width="228"/>
+            </Grid>
+        </GroupBox>
+        <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="BlockListManager" VerticalAlignment="Top" Height="30" Width="715" Foreground="#FFBABABA" FontSize="20" Margin="35,0,0,0" MouseDown="TitleTextBlock_MouseDown"/>
+        <Image x:Name="CloseButtonImage" HorizontalAlignment="Left" Height="30
+               " Margin="750,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="CloseButtonImage_MouseLeftButtonUp">
+            <Image.Style>
+                <Style TargetType="{x:Type Image}">
+                    <Setter Property="Source" Value="/Images/close.png"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Source" Value="/Images/close_mouseover.bmp"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Image.Style>
+        </Image>
+        <Image x:Name="SpotSkipIcon" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="30">
+            <Image.Style>
+                <Style TargetType="{x:Type Image}">
+                    <Setter Property="Source" Value="/Images/SpotSkipIco.png"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Source" Value="/Images/SpotSkipIco_mouseover.png"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Image.Style>
+        </Image>
+
+    </Grid>
+</Window>
