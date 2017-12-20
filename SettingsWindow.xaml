@@ -8,7 +8,7 @@
         Title="MainWindow" Height="170" Width="565" ResizeMode="CanMinimize" Background="#FF3F3F46" WindowStyle="None" WindowStartupLocation="CenterScreen"
         >
     <Grid>
-        <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="30" Width="475" Foreground="#FFBABABA" FontSize="20" Margin="30,0,-100,0" MouseDown="TitleTextBlock_MouseDown" Background="#FF404040"/>
+        <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="Settings" VerticalAlignment="Top" Height="30" Width="475" Foreground="#FFBABABA" FontSize="20" Margin="30,0,-100,0" MouseDown="TitleTextBlock_MouseDown" Background="#FF404040"/>
         <Image x:Name="CloseButtonImage" HorizontalAlignment="Left" Height="30                " Margin="535,0,-160,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="CloseButtonImage_MouseLeftButtonUp">
             <Image.Style>
                 <Style TargetType="{x:Type Image}">
