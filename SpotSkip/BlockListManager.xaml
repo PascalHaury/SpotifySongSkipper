@@ -9,19 +9,21 @@
     <Grid>
         <GroupBox x:Name="SongGrid" Header="Song Block" Margin="10,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
             <Grid Margin="0,0,0,0">
-                <ListBox x:Name="SongBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top"/>
-                <Button x:Name="UnblockSongButton" Content="Unblock Song" Margin="0,200,0,0" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="228" Click="UnblockSongButton_Click"/>
+                <ListBox x:Name="SongBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top">
+                    <ListBoxItem Content="Test" FontSize="12"/>
+                </ListBox>
+                <Button x:Name="UnblockSongButton" Content="Unblock Song" Margin="0,200,0,0" Height="19" HorizontalAlignment="Left" Width="228" Click="UnblockSongButton_Click"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="ArtistGrid" Header="Artist Block" Margin="265,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
             <Grid Margin="0,0,0,0">
-                <ListBox x:Name="ArtistBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top"/>
+                <ListBox x:Name="ArtistBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top" FontSize="12"/>
                 <Button x:Name="UnblockArtistButton" Content="Unblock Artist" Margin="0,200,0,0" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="228" Click="UnblockArtistButton_Click"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="ComboGrid" Header="Combo Block" Margin="520,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
             <Grid Margin="0,0,0,0">
-                <ListBox x:Name="ComboBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top"/>
+                <ListBox x:Name="ComboBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top" FontSize="12"/>
                 <Button x:Name="UnblockComboButton" Content="Unblock Combo" Margin="0,200,0,0" Height="19" Click="UnblockComboButton_Click" HorizontalAlignment="Left" Width="228"/>
             </Grid>
         </GroupBox>

@@ -1,16 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Xml;
-using System.Xml.Linq;
-
-using System.IO;
-using System.Windows.Threading;
 using System.Runtime.InteropServices;
-using System.Diagnostics;
 
 namespace SpotSkip
 {
@@ -26,10 +15,30 @@ namespace SpotSkip
         public const int KEYEVENTF_EXTENDEDKEY = 0x0001; //Key down flag
         public const int KEYEVENTF_KEYUP = 0x0002; //Key up flag
 
-        public void SkipSong()
+        public void skipSong()
         {
-            keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY, IntPtr.Zero);
-            keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
+            try
+            {
+                keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY, IntPtr.Zero);
+                keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
+            }
+            catch (Exception ex)
+            {
+                new FileIO_Write().logError(ex);
+            }
+        }
+
+        public void playSong()
+        {
+            try
+            {
+                keybd_event(VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY, IntPtr.Zero);
+                keybd_event(VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
+            }
+            catch (Exception ex)
+            {
+                new FileIO_Write().logError(ex);
+            }
         }
     }
 }

@@ -10,11 +10,11 @@ none
 false
 DEBUG;TRACE
 C:\Users\pasca\source\repos\SpotSkip\SpotSkip\App.xaml
-71634229287
+8-166842648
 
-14716953034
+1589476165
 171591649675
-BlockListManager.xaml;MainWindow.xaml;Themes\MetroDark\MetroDark.MSControls.Core.Implicit.xaml;Themes\MetroDark\MetroDark.MSControls.Toolkit.Implicit.xaml;Themes\MetroDark\Styles.Shared.xaml;Themes\MetroDark\Styles.WPF.xaml;Themes\MetroDark\Theme.Colors.xaml;
+BlockListManager.xaml;MainWindow.xaml;SettingsWindow.xaml;Themes\MetroDark\MetroDark.MSControls.Core.Implicit.xaml;Themes\MetroDark\MetroDark.MSControls.Toolkit.Implicit.xaml;Themes\MetroDark\Styles.Shared.xaml;Themes\MetroDark\Styles.WPF.xaml;Themes\MetroDark\Theme.Colors.xaml;
 
 True
 

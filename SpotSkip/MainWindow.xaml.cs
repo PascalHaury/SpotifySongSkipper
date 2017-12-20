@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
-using System.Xml;
-using System.Xml.Linq;
-
-using System.IO;
 using System.Windows.Threading;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
 
 namespace SpotSkip
@@ -22,18 +15,26 @@ namespace SpotSkip
         private KeyboardEmulation keyEmu = new KeyboardEmulation();
         private FileIO_Write xmlWriter = new FileIO_Write();
         private FileIO_Read xmlReader = new FileIO_Read();
-        private Variables vars = new Variables();
+        private Variables globalVars = new Variables();
+        private Settings SettingsManager = new Settings();
+        private Processes SpotProc = new Processes();
 
-        DispatcherTimer LocalSpotifySongChecker = new DispatcherTimer();
-        private string CurrentlyPlaying = string.Empty;
-        private string SpotifyStatus = string.Empty;
+        private DispatcherTimer localSpotifySongChecker = new DispatcherTimer();
+        private string lastSong = string.Empty;
+        private string currentlyPlaying = string.Empty;
+        private string spotifyStatus = string.Empty;
 
-        private int BlockedSongCounter = 0;
+        private int blockedSongCounter = 0;
+        private int playedSongCounter = 0;
 
-        private bool IsPlaying = false;
+        private bool isPlaying = false;
+        private bool autoplay = false;
 
-        BlockListManager BLM = null;
-        bool BlockListManagerActive = false;
+        private BlockListManager BLM = null;
+        private bool blockListManagerActive = false;
+
+        private SettingsWindow SW = null;
+        private bool settingsWindowActive = false;
 
         public MainWindow()
         {
@@ -45,21 +46,28 @@ namespace SpotSkip
         {
             try
             {
-                LocalSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, 500);
-                LocalSpotifySongChecker.Tick += LocalSpotifySongChecker_Tick;
-                xmlWriter.createDefaultTable(vars.BlockListFilePath);
-                LocalSpotifySongChecker.Start();
+                SettingsManager.createDefaultTable();
+                SettingsManager.readSettings();
+                localSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, 500);
+                localSpotifySongChecker.Tick += localSpotifySongChecker_Tick;
+                xmlWriter.createDefaultTable(globalVars.BlockListFilePath);
+                localSpotifySongChecker.Start();
+
+                if (globalVars.StartSpotify == true)
+                {
+                    SpotProc.StartSpotify();
+                }
 
                 return true;
             }
             catch (Exception ex)
             {
-                xmlWriter.LogError(ex);
+                xmlWriter.logError(ex);
                 return false;
             }
         }
 
-        private void LocalSpotifySongChecker_Tick(object sender, EventArgs e)
+        private void localSpotifySongChecker_Tick(object sender, EventArgs e)
         {
             //Check the status of the BlockListManager, set the
             //correct Button text and the status flag
@@ -70,7 +78,7 @@ namespace SpotSkip
                     if (BlockListManagerButton.Content.ToString() != "Close BLM")
                     {
                         BlockListManagerButton.Content = "Close BLM";
-                        BlockListManagerActive = true;
+                        blockListManagerActive = true;
                     }
                 }
                 else
@@ -78,46 +86,81 @@ namespace SpotSkip
                     if (BlockListManagerButton.Content.ToString() != "Open BLM")
                     {
                         BlockListManagerButton.Content = "Open BLM";
-                        BlockListManagerActive = false;
+                        blockListManagerActive = false;
+                    }
+                }
+            }
+            //Check the status of the SettingWindow, set the
+            //correct Button text and the status flag
+            if (SW != null)
+            {
+                if (SW.IsVisible)
+                {
+                    if (SettingsButton.Content.ToString() != "Close SW")
+                    {
+                        SettingsButton.Content = "Close SW";
+                        settingsWindowActive = true;
+                    }
+                }
+                else
+                {
+                    if (SettingsButton.Content.ToString() != "Settings")
+                    {
+                        SettingsButton.Content = "Settings";
+                        settingsWindowActive = false;
                     }
                 }
             }
 
             //Get the Current song playing on Spotify
-            var SpotifyProcess = Process.GetProcessesByName("Spotify").FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle));
-            if (SpotifyProcess == null)   //Spotify isn't started
+            var spotifyProcess = Process.GetProcessesByName("Spotify").FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle));
+            if (spotifyProcess == null)   //Spotify isn't started
             {
-                SpotifyStatus = "Spotify is not started...";
-                TitleTextBlock.Text = SpotifyStatus;
-                CurrentlyPlayingTextBox.Text = SpotifyStatus;
+                spotifyStatus = " Spotify is not started...";
+                TitleTextBlock.Text = spotifyStatus;
+                CurrentlyPlayingTextBox.Text = spotifyStatus;
                 disableControls();
-                IsPlaying = false;
+                isPlaying = false;
             }
-            else if (string.Equals(SpotifyProcess.MainWindowTitle, "Spotify", StringComparison.InvariantCultureIgnoreCase))   //Spotify is started but Paused
+            else if (string.Equals(spotifyProcess.MainWindowTitle, "Spotify", StringComparison.InvariantCultureIgnoreCase))   //Spotify is started but Paused
             {
-                SpotifyStatus = "Spotify is paused...";
-                TitleTextBlock.Text = SpotifyStatus;
-                CurrentlyPlayingTextBox.Text = SpotifyStatus;
+                spotifyStatus = " Spotify is paused...";
+                TitleTextBlock.Text = spotifyStatus;
+                CurrentlyPlayingTextBox.Text = spotifyStatus;
                 disableControls();
-                IsPlaying = false;
+                isPlaying = false;
+                if (!autoplay && globalVars.PlaySong)
+                {
+                    keyEmu.playSong();
+                    autoplay = true;
+                }
             }
             else    //Spotify is Started and a song is Playing
             {
                 
                 enableControls();
-                if (CurrentlyPlaying != SpotifyProcess.MainWindowTitle || !IsPlaying)   
+                currentlyPlaying = spotifyProcess.MainWindowTitle;
+                if (currentlyPlaying != lastSong || !isPlaying)   
                 {
-                    SpotifyStatus = "Spotify is playing music...";
-                    TitleTextBlock.Text = SpotifyStatus;
-                    CurrentlyPlaying = SpotifyProcess.MainWindowTitle;
-                    CurrentlyPlayingTextBox.Text = CurrentlyPlaying;
-                    if (xmlReader.searchForEntry(CurrentlyPlaying))
+                    autoplay = true;
+                    spotifyStatus = " Spotify is playing music...";
+                    lastSong = spotifyProcess.MainWindowTitle;
+                    TitleTextBlock.Text = spotifyStatus;
+                    CurrentlyPlayingTextBox.Text = currentlyPlaying;
+                    playedSongCounter++;
+                    if (xmlReader.searchForEntry(currentlyPlaying))
                     {
-                        BlockedSongCounter++;
-                        keyEmu.SkipSong();
+                        blockedSongCounter++;
+                        keyEmu.skipSong();
+                        globalVars.SongsSkipped++;
                     }
-                    BlockCounterTextBlock.Text = BlockedSongCounter + " Blocked";
-                    IsPlaying = true;
+                    else
+                    {
+                        globalVars.SongsPlayed++;
+                    }
+                    TitleTextBlock.Text += " | " + blockedSongCounter +"/" + playedSongCounter + " songs Blocked";
+                    isPlaying = true;
+                    SettingsManager.updateLog(globalVars.SongsSkipped, globalVars.SongsPlayed);
                 }
             }
         }
@@ -138,39 +181,53 @@ namespace SpotSkip
 
         private void BlockArtistButton_Click(object sender, RoutedEventArgs e)
         {
-            string Artist = CurrentlyPlaying.Split('-')[0]; //get the current artist
-            xmlWriter.AddEntry(Artist.Remove(Artist.Length - 1, 1), FileIO_Write.BlockType.ArtistBlock);    //add the Artist top the blocklist
-            keyEmu.SkipSong();  //skip the current song
+            string Artist = currentlyPlaying.Split('-')[0]; //get the current artist
+            xmlWriter.addEntry(Artist.Remove(Artist.Length - 1, 1), FileIO_Write.BlockType.ArtistBlock);    //add the Artist top the blocklist
+            keyEmu.skipSong();  //skip the current song
+            if (globalVars.SongsPlayed>0)globalVars.SongsPlayed--;
+            blockedSongCounter++;
+            globalVars.SongsSkipped++;
+            SettingsManager.updateLog(globalVars.SongsSkipped, globalVars.SongsPlayed);
         }
 
         private void BlockSongButton_Click(object sender, RoutedEventArgs e)
         {
-            string Song = CurrentlyPlaying.Split('-')[1];   //get the current song
-            xmlWriter.AddEntry(Song.Remove(0, 1), FileIO_Write.BlockType.SongBlock);    //add the song top the blocklist
-            keyEmu.SkipSong();  //skip the current song
+            string Song = currentlyPlaying.Split('-')[1];   //get the current song
+            xmlWriter.addEntry(Song.Remove(0, 1), FileIO_Write.BlockType.SongBlock);    //add the song top the blocklist
+            keyEmu.skipSong();  //skip the current song
+            if (globalVars.SongsPlayed > 0) globalVars.SongsPlayed--;
+            blockedSongCounter++;
+            globalVars.SongsSkipped++;
+            SettingsManager.updateLog(globalVars.SongsSkipped, globalVars.SongsPlayed);
         }
 
         private void BlockComboButton_Click(object sender, RoutedEventArgs e)
         {
-            string Combo = CurrentlyPlaying;    //get the current song/artist combo
-            xmlWriter.AddEntry(Combo, FileIO_Write.BlockType.ComboBlock);   //add the song/artist combo to the blocklist
-            keyEmu.SkipSong();  //skip the current song
+            string Combo = currentlyPlaying;    //get the current song/artist combo
+            xmlWriter.addEntry(Combo, FileIO_Write.BlockType.ComboBlock);   //add the song/artist combo to the blocklist
+            keyEmu.skipSong();  //skip the current song
+            if (globalVars.SongsPlayed > 0) globalVars.SongsPlayed--;
+            blockedSongCounter++;
+            globalVars.SongsSkipped++;
+            SettingsManager.updateLog(globalVars.SongsSkipped, globalVars.SongsPlayed);
         }
 
         private void BlockListManagerButton_Click(object sender, RoutedEventArgs e)
         {
-           if (!BlockListManagerActive)
+           if (!blockListManagerActive)
             {
                 BLM = new BlockListManager();
+                BLM.Topmost = true;
+                BLM.WindowStartupLocation = WindowStartupLocation.CenterScreen;
                 BLM.Show();
-                BlockListManagerActive = true;
+                blockListManagerActive = true;
                 BlockListManagerButton.Content = "Close BLM";
             }
             else
             {
                 BLM.Close();
                 BLM = null;
-                BlockListManagerActive = false; ;
+                blockListManagerActive = false; ;
                 BlockListManagerButton.Content = "Open BLM";
             }
         }
@@ -182,6 +239,11 @@ namespace SpotSkip
                 BLM.Close();
                 BLM = null;
             }
+            if (SW != null)    //Close the BlockListManager if it is active
+            {
+                SW.Close();
+                SW = null;
+            }
         }
         private void MinimizeButtonImage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -190,6 +252,7 @@ namespace SpotSkip
 
         private void CloseButtonImage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            SettingsManager.writeSettings(globalVars.StartSpotify, globalVars.PlaySong, globalVars.SongsSkipped, globalVars.SongsPlayed);
             Environment.Exit(0x01);
         }
 
@@ -198,6 +261,26 @@ namespace SpotSkip
             if (e.ChangedButton == MouseButton.Left)
             {
                 this.DragMove();
+            }
+        }
+
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!settingsWindowActive)
+            {
+                SW = new SettingsWindow();
+                SW.Topmost = true;
+                SW.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                SW.Show();
+                settingsWindowActive = true;
+                SettingsButton.Content = "Close SW";
+            }
+            else
+            {
+                SW.Close();
+                SW = null;
+                settingsWindowActive = false; ;
+                SettingsButton.Content = "Settings";
             }
         }
     }

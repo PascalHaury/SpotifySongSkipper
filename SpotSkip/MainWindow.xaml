@@ -5,21 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpotSkip"
         mc:Ignorable="d"
-        Title="MainWindow" Height="115" Width="530" ResizeMode="CanMinimize" Closing="Window_Closing" Background="#FF3F3F46" WindowStyle="None"
+        Title="MainWindow" Height="115" Width="565" ResizeMode="CanMinimize" Closing="Window_Closing" Background="#FF3F3F46" WindowStyle="None" WindowStartupLocation="CenterScreen"
         >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <TextBox x:Name="CurrentlyPlayingTextBox" HorizontalAlignment="Left" Height="23" Margin="10,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="495" IsReadOnly="True"/>
-        <Button x:Name="BlockArtistButton" Content="Block Artist" HorizontalAlignment="Left" Margin="10,76,0,0" VerticalAlignment="Top" Width="105" Click="BlockArtistButton_Click" IsEnabled="False"/>
-        <Button x:Name="BlockSongButton" Content="Block Song" HorizontalAlignment="Left" Margin="120,76,0,0" VerticalAlignment="Top" Width="105" Click="BlockSongButton_Click" IsEnabled="False"/>
+        <TextBox x:Name="CurrentlyPlayingTextBox" HorizontalAlignment="Left" Height="23" Margin="10,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="545" IsReadOnly="True"/>
+        <Button x:Name="BlockArtistButton" Content="Block Artist" HorizontalAlignment="Left" Margin="120,76,0,0" VerticalAlignment="Top" Width="105" Click="BlockArtistButton_Click" IsEnabled="False"/>
+        <Button x:Name="BlockSongButton" Content="Block Song" HorizontalAlignment="Left" Margin="10,76,0,0" VerticalAlignment="Top" Width="105" Click="BlockSongButton_Click" IsEnabled="False"/>
         <Button x:Name="BlockComboButton" Content="Block Combo" HorizontalAlignment="Left" Margin="230,76,0,0" VerticalAlignment="Top" Width="105" IsEnabled="False" Click="BlockComboButton_Click"/>
-        <TextBlock x:Name="BlockCounterTextBlock" HorizontalAlignment="Left" Margin="450,83,0,0" TextWrapping="Wrap" Text="0 Blocked" VerticalAlignment="Top" Width="80" Foreground="#FFBABABA"/>
         <Button x:Name="BlockListManagerButton" Content="Open BLM" HorizontalAlignment="Left" Margin="340,76,0,0" VerticalAlignment="Top" Width="105" Click="BlockListManagerButton_Click"/>
-        <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="30" Width="430" Foreground="#FFBABABA" FontSize="20" Margin="35,0,0,0" MouseDown="TitleTextBlock_MouseDown"/>
+        <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="30" Width="475" Foreground="#FFBABABA" FontSize="20" Margin="30,0,0,0" MouseDown="TitleTextBlock_MouseDown" Background="#FF404040"/>
         <Image x:Name="CloseButtonImage" HorizontalAlignment="Left" Height="30
-               " Margin="500,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="CloseButtonImage_MouseLeftButtonUp">
+               " Margin="535,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="CloseButtonImage_MouseLeftButtonUp">
             <Image.Style>
                 <Style TargetType="{x:Type Image}">
                     <Setter Property="Source" Value="/Images/close.png"/>
@@ -31,7 +30,7 @@
                 </Style>
             </Image.Style>
         </Image>
-        <Image x:Name="MinimizeButtonImage" HorizontalAlignment="Left" Height="30" Margin="470,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="MinimizeButtonImage_MouseLeftButtonUp">
+        <Image x:Name="MinimizeButtonImage" HorizontalAlignment="Left" Height="30" Margin="505,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="MinimizeButtonImage_MouseLeftButtonUp">
             <Image.Style>
                 <Style TargetType="{x:Type Image}">
                     <Setter Property="Source" Value="/Images/minimize.bmp"/>
@@ -55,5 +54,6 @@
                 </Style>
             </Image.Style>
         </Image>
+        <Button x:Name="SettingsButton" Content="Settings" HorizontalAlignment="Left" Margin="450,76,0,0" VerticalAlignment="Top" Width="105" Click="SettingsButton_Click"/>
     </Grid>
 </Window>
