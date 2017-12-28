@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpotSkip"
         mc:Ignorable="d"
-        Title="MainWindow" Height="170" Width="565" ResizeMode="CanMinimize" Background="#FF3F3F46" WindowStyle="None" WindowStartupLocation="CenterScreen"
+        Title="MainWindow" Height="245" Width="739.666" ResizeMode="CanMinimize" Background="#FF3F3F46" WindowStyle="None" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded"
         >
     <Grid>
-        <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="Settings" VerticalAlignment="Top" Height="30" Width="475" Foreground="#FFBABABA" FontSize="20" Margin="30,0,-100,0" MouseDown="TitleTextBlock_MouseDown" Background="#FF404040"/>
-        <Image x:Name="CloseButtonImage" HorizontalAlignment="Left" Height="30                " Margin="535,0,-160,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="CloseButtonImage_MouseLeftButtonUp">
+        <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text=" Settings" VerticalAlignment="Top" Height="30" Width="650" Foreground="#FFBABABA" FontSize="20" Margin="30,0,0,0" MouseDown="TitleTextBlock_MouseDown" Background="#FF404040"/>
+        <Image x:Name="CloseButtonImage" HorizontalAlignment="Left" Height="30                " Margin="710,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="CloseButtonImage_MouseLeftButtonUp">
             <Image.Style>
                 <Style TargetType="{x:Type Image}">
                     <Setter Property="Source" Value="/Images/close.png"/>
@@ -21,7 +21,7 @@
                 </Style>
             </Image.Style>
         </Image>
-        <Image x:Name="MinimizeButtonImage" HorizontalAlignment="Left" Height="30" Margin="505,0,-130,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="MinimizeButtonImage_MouseLeftButtonUp">
+        <Image x:Name="MinimizeButtonImage" HorizontalAlignment="Left" Height="30" Margin="680,0,0,0" VerticalAlignment="Top" Width="30" MouseLeftButtonUp="MinimizeButtonImage_MouseLeftButtonUp">
             <Image.Style>
                 <Style TargetType="{x:Type Image}">
                     <Setter Property="Source" Value="/Images/minimize.bmp"/>
@@ -47,11 +47,27 @@
         </Image>
         <TextBox x:Name="BlockListFilePathTextBox" HorizontalAlignment="Left" Height="23" Margin="10,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" GotFocus="BlockListFilePathTextBox_GotFocus" LostFocus="BlockListFilePathTextBox_LostFocus" Text="Blocklist File Path" IsReadOnly="True"/>
         <TextBox x:Name="ErrorLogFilePathTextBox" HorizontalAlignment="Left" Height="23" Margin="10,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" GotFocus="ErrorLogFilePathTextBox_GotFocus" LostFocus="ErrorLogFilePathTextBox_LostFocus" Text="Errorlog File Path" IsReadOnly="True"/>
-        <CheckBox x:Name="OverrideBlockListPathCheckBox" Content="Overwrite" HorizontalAlignment="Left" Margin="451,39,0,0" VerticalAlignment="Top" Width="104" Click="OverrideBlockListPathCheckBox_Click"/>
-        <CheckBox x:Name="OverrideErrorLogPathCheckBox" Content="Overwrite" HorizontalAlignment="Left" Margin="451,75,0,0" VerticalAlignment="Top" Width="104" Click="OverrideErrorLogPathCheckBox_Click" />
-        <CheckBox x:Name="SpotifyAutoStartCheckBox" Content="Spotify auto-start" HorizontalAlignment="Left" Margin="10,105,0,0" VerticalAlignment="Top" Click="SpotifyAutoStartCheckBox_Click"/>
+        <CheckBox x:Name="OverrideBlockListPathCheckBox" Content="Override" HorizontalAlignment="Left" Margin="451,39,0,0" VerticalAlignment="Top" Width="104" Click="OverrideBlockListPathCheckBox_Click"/>
+        <CheckBox x:Name="OverrideErrorLogPathCheckBox" Content="Override" HorizontalAlignment="Left" Margin="451,75,0,0" VerticalAlignment="Top" Width="104" Click="OverrideErrorLogPathCheckBox_Click" />
+        <CheckBox x:Name="SpotifyAutoStartCheckBox" Content="Spotify auto-start" HorizontalAlignment="Left" Margin="10,105,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="SpotifyAutoPlayCheckBox" Content="Spotify auto-play" HorizontalAlignment="Left" Margin="164,105,0,0" VerticalAlignment="Top" Click="SpotifyAutoPlayCheckBox_Click"/>
-        <Button x:Name="SaveButton" Content="Save" HorizontalAlignment="Left" Margin="10,135,0,0" VerticalAlignment="Top" Width="75" Click="SaveButton_Click"/>
+        <Button x:Name="SaveButton" Content="Save" HorizontalAlignment="Left" Margin="10,206,0,0" VerticalAlignment="Top" Width="75" Click="SaveButton_Click"/>
+        <Button x:Name="AbortButton" Content="Abort" HorizontalAlignment="Left" Margin="90,206,0,0" VerticalAlignment="Top" Width="75" Click="AbortButton_Click"/>
+        <Slider x:Name="FrequencySlider" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="316,110,0,0" Width="115" Maximum="2000" TickFrequency="0" Value="500" Minimum="500" ValueChanged="FrequencySlider_ValueChanged" IsDirectionReversed="True"/>
+        <Label Content="Update frequency" HorizontalAlignment="Left" Margin="316,118,0,0" VerticalAlignment="Top"/>
+        <TextBlock x:Name="UpdateFrequencyTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="2,00 Hz" VerticalAlignment="Top" Margin="436,110,0,0" Foreground="#FFBABABA"/>
+        <GroupBox Header="Statistics" HorizontalAlignment="Left" Height="201" Margin="555,35,0,0" VerticalAlignment="Top" Width="175">
+            <Grid Margin="0,0,-12,-10">
+                <Label x:Name="SongsPlayedLabel" Content="Songs played:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="22,0,0,0" Width="133" HorizontalContentAlignment="Stretch"/>
+                <Label x:Name="SongsSkippedLabel" Content="Songs skipped:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="13,28,0,0" Width="142" HorizontalContentAlignment="Stretch"/>
+                <Label x:Name="SongBlockLabel" Content="Songs blocked:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="13,56,0,0" Width="142" HorizontalContentAlignment="Stretch"/>
+                <Label x:Name="ArtistBlockLabel" Content="Artists blocked:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,84,0,0" Width="143" HorizontalContentAlignment="Stretch"/>
+                <Label x:Name="ComboBlockLabel" Content="Combos blocked:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,112,0,0" Width="155" HorizontalContentAlignment="Stretch"/>
+                <Label x:Name="TotalBlocksLabel" Content="Total blocks:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,137,0,0" Width="125" HorizontalContentAlignment="Stretch"/>
+            </Grid>
+
+
+        </GroupBox>
 
     </Grid>
 </Window>

@@ -19,29 +19,26 @@ namespace SpotSkip
     /// </summary>
     public partial class BlockListManager : Window
     {
+        Variables getVars = new Variables();
 
-        private string BlockListFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\BlockListV2.xml";
-        private string LogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\" + DateTime.Today.ToShortDateString() + "BlockLog.log";
-        private string ErrorLogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\" + DateTime.Today.ToShortDateString() + "ErrorLog.log";
-        DispatcherTimer refreshTimer = new DispatcherTimer();
+        private List<string> BlockSongList = new List<string>();
+        private List<string> BlockArtistList = new List<string>();
+        private List<string> BlockComboList = new List<string>();
+
         private enum BlockType { SongBlock, ArtistBlock, ComboBlock, none };
-
-        int countdown = 5;
 
         public BlockListManager()
         {
             InitializeComponent();
+            this.Title = "SotSkip Blocklist Manager";
             LoadBlockList();
             FileSystemWatcher fsw = new FileSystemWatcher();
-            fsw.Path = Path.GetDirectoryName(BlockListFilePath);
-            fsw.Filter = "BlockListV2.xml";
+            fsw.Path = Path.GetDirectoryName(getVars.BlockListFilePath);
+            fsw.Filter = Path.GetFileName(getVars.BlockListFilePath);
             fsw.NotifyFilter = NotifyFilters.LastWrite;
             fsw.IncludeSubdirectories = false;
             fsw.Changed += new FileSystemEventHandler(Fsw_Changed);
             fsw.EnableRaisingEvents = true;
-            //refreshTimer.Interval = new TimeSpan(0, 0, 0, 1, 0);
-            //refreshTimer.Tick += RefreshTimer_Tick;
-            //refreshTimer.Start();
         }
 
         private void Fsw_Changed(object sender, FileSystemEventArgs e)
@@ -49,121 +46,145 @@ namespace SpotSkip
             Dispatcher.Invoke(() => LoadBlockList());
         }
 
-        private void RefreshTimer_Tick(object sender, EventArgs e)
-        {
-            this.Title = "BlockListManager - " + countdown + "sec. until refresh";
-            countdown--;
-            if (countdown < 0)
-            {
-                LoadBlockList();
-                countdown = 5;
-            }
-            
-        }
-
         void LoadBlockList()
         {
             SongBlockListBox.Items.Clear();
             ArtistBlockListBox.Items.Clear();
             ComboBlockListBox.Items.Clear();
+            BlockSongList.Clear();
+            BlockArtistList.Clear();
+            BlockComboList.Clear();
 
-            XElement root = XElement.Parse(File.ReadAllText(BlockListFilePath));
+            XElement root = XElement.Parse(File.ReadAllText(getVars.BlockListFilePath));
 
             var blocksong = root.Descendants("Song");
             var blockArtist = root.Descendants("Artist");
             var blockCombo = root.Descendants("Combo");
             foreach (var song in blocksong)
             {
-                //if (song.HasAttributes)
-                //{
-                //    SongBlockListBox.Items.Add("\"" + song.Value + "\" | " + song.Attribute("Date").Value);
-                //}
-                //else
-                //{
+                BlockSongList.Add(song.Value);
+                if (SearchSongTextBox.Text != "Search...")
+                {
+                    SongBlockListBox.Items.Clear();
+                    foreach (string entry in BlockSongList)
+                    {
+                        if (entry.ToLower().Contains(SearchSongTextBox.Text.ToLower()))
+                        {
+                            SongBlockListBox.Items.Add("\"" + entry + "\"");
+                        }
+                    }
+                }
+                else
+                {
                     SongBlockListBox.Items.Add("\"" + song.Value + "\"");
-                //}
+                }
             }
 
             foreach (var Artist in blockArtist)
             {
-                //if (Artist.HasAttributes)
-                //{
-                //    ArtistBlockListBox.Items.Add("\"" + Artist.Value + "\" | " + Artist.Attribute("Date").Value);
-                //}
-                //else
-                //{
+                BlockArtistList.Add(Artist.Value);
+                if (SearchArtistTextBox.Text != "Search...")
+                {
+                    ArtistBlockListBox.Items.Clear();
+                    foreach (string entry in BlockArtistList)
+                    {
+                        if (entry.ToLower().Contains(SearchArtistTextBox.Text.ToLower()))
+                        {
+                            ArtistBlockListBox.Items.Add("\"" + entry + "\"");
+                        }
+                    }
+                }
+                else
+                {
                     ArtistBlockListBox.Items.Add("\"" + Artist.Value + "\"");
-                //}
+                }
             }
 
             foreach (var Combo in blockCombo)
             {
-                //if (Combo.HasAttributes)
-                //{
-                //    ComboBlockListBox.Items.Add("\"" + Combo.Value + "\" | " + Combo.Attribute("Date").Value);
-                //}
-                //else
-                //{
+                BlockComboList.Add(Combo.Value);
+                if (SearchComboTextBox.Text != "Search...")
+                {
+                    ComboBlockListBox.Items.Clear();
+                    foreach (string entry in BlockComboList)
+                    {
+                        if (entry.ToLower().Contains(SearchComboTextBox.Text.ToLower()))
+                        {
+                            ComboBlockListBox.Items.Add("\"" + entry + "\"");
+                        }
+                    }
+                }
+                else
+                {
                     ComboBlockListBox.Items.Add("\"" + Combo.Value + "\"");
-                //}
+                }
             }
-            SongGrid.Header = "[" + blocksong.Count() + "] Songs blocked";
-            ArtistGrid.Header = "[" + blockArtist.Count() + "] Artists blocked";
-            ComboGrid.Header = "[" + blockCombo.Count() + "] Combos blocked";
+            SongGrid.Header = "[" + BlockSongList.Count() + "] Songs blocked";
+            ArtistGrid.Header = "[" + BlockArtistList.Count() + "] Artists blocked";
+            ComboGrid.Header = "[" + BlockComboList.Count() + "] Combos blocked";
 
 
         }
 
         private void UnblockSongButton_Click(object sender, RoutedEventArgs e)
         {
-            string unblock = SongBlockListBox.SelectedItem.ToString();
-            if (unblock.Contains(" | "))
+            foreach (string Song in SongBlockListBox.SelectedItems)
             {
-                unblock = unblock.Remove(0, 1).Split('|')[0];
-                unblock = unblock.Remove(unblock.Count() - 2, 2);
+                string unblock = Song;
+                if (unblock.Contains(" | "))
+                {
+                    unblock = unblock.Remove(0, 1).Split('|')[0];
+                    unblock = unblock.Remove(unblock.Count() - 2, 2);
+                }
+                else
+                {
+                    unblock = unblock.Remove(0, 1);
+                    unblock = unblock.Remove(unblock.Count() - 1, 1);
+                }
+                removeEntry(unblock, BlockType.SongBlock);
             }
-            else
-            {
-                unblock = unblock.Remove(0, 1);
-                unblock = unblock.Remove(unblock.Count() - 1, 1);
-            }
-            removeEntry(unblock, BlockType.SongBlock);
             LoadBlockList();
 
         }
 
         private void UnblockArtistButton_Click(object sender, RoutedEventArgs e)
         {
-            string unblock = ArtistBlockListBox.SelectedItem.ToString();
-            if (unblock.Contains(" | "))
+            foreach (string Artist in ArtistBlockListBox.SelectedItems)
             {
-                unblock = unblock.Remove(0, 1).Split('|')[0];
-                unblock = unblock.Remove(unblock.Count() - 2, 2);
+                string unblock = Artist;
+                if (unblock.Contains(" | "))
+                {
+                    unblock = unblock.Remove(0, 1).Split('|')[0];
+                    unblock = unblock.Remove(unblock.Count() - 2, 2);
+                }
+                else
+                {
+                    unblock = unblock.Remove(0, 1);
+                    unblock = unblock.Remove(unblock.Count() - 1, 1);
+                }
+                removeEntry(unblock, BlockType.ArtistBlock);
             }
-            else
-            {
-                unblock = unblock.Remove(0, 1);
-                unblock = unblock.Remove(unblock.Count() - 1, 1);
-            }
-            removeEntry(unblock, BlockType.ArtistBlock);
             LoadBlockList();
 
         }
 
         private void UnblockComboButton_Click(object sender, RoutedEventArgs e)
         {
-            string unblock = ComboBlockListBox.SelectedItem.ToString();
-            if (unblock.Contains(" | "))
+            foreach (string combo in ComboBlockListBox.SelectedItems)
             {
-                unblock = unblock.Remove(0, 1).Split('|')[0];
-                unblock = unblock.Remove(unblock.Count() - 2, 2);
+                string unblock = combo;
+                if (unblock.Contains(" | "))
+                {
+                    unblock = unblock.Remove(0, 1).Split('|')[0];
+                    unblock = unblock.Remove(unblock.Count() - 2, 2);
+                }
+                else
+                {
+                    unblock = unblock.Remove(0, 1);
+                    unblock = unblock.Remove(unblock.Count() - 1, 1);
+                }
+                removeEntry(unblock, BlockType.ComboBlock);
             }
-            else
-            {
-                unblock = unblock.Remove(0, 1);
-                unblock = unblock.Remove(unblock.Count() - 1, 1);
-            }
-            removeEntry(unblock, BlockType.ComboBlock);
             LoadBlockList();
         }
 
@@ -186,13 +207,13 @@ namespace SpotSkip
                 }
 
                 XmlDocument doc = new XmlDocument();
-                doc.Load(BlockListFilePath);
+                doc.Load(getVars.BlockListFilePath);
                 XmlNodeList RemVar = doc.SelectNodes(NodeSelect);
                 foreach (XmlNode node in RemVar)
                 {
                     node.ParentNode.RemoveChild(node);
                 }
-                doc.Save(BlockListFilePath);
+                doc.Save(getVars.BlockListFilePath);
 
                 return true;
             }
@@ -213,6 +234,169 @@ namespace SpotSkip
         private void CloseButtonImage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             this.Close();
+        }
+
+        private void SearchSongTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchSongTextBox.Text == "Search...")
+            {
+                SearchSongTextBox.Text = "";
+            }
+        }
+
+        private void SearchArtistTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchArtistTextBox.Text == "Search...")
+            {
+                SearchArtistTextBox.Text = "";
+            }
+        }
+
+        private void SearchComboTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchComboTextBox.Text == "Search...")
+            {
+                SearchComboTextBox.Text = "";
+            }
+        }
+
+        private void SearchSongTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchSongTextBox.Text == "")
+            {
+                SearchSongTextBox.Text = "Search...";
+            }
+        }
+
+        private void SearchArtistTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchArtistTextBox.Text == "")
+            {
+                SearchArtistTextBox.Text = "Search...";
+            }
+        }
+
+        private void SearchComboTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchComboTextBox.Text == "")
+            {
+                SearchComboTextBox.Text = "Search...";
+            }
+        }
+
+        private void SearchSongTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (SearchSongTextBox.Text != "Search...")
+            {
+                SongBlockListBox.Items.Clear();
+                foreach (string entry in BlockSongList)
+                {
+                    if (entry.ToLower().Contains(SearchSongTextBox.Text.ToLower()))
+                    {
+                        SongBlockListBox.Items.Add("\"" + entry + "\"");
+                    }
+                }
+                SongGrid.Header = "[" + SongBlockListBox.Items.Count + "] Songs found";
+            }
+            else
+            {
+                SongGrid.Header = "[" + BlockSongList.Count() + "] Songs blocked";
+            }
+        }
+
+        private void SearchArtistTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (SearchArtistTextBox.Text != "Search...")
+            {
+                ArtistBlockListBox.Items.Clear();
+                foreach (string entry in BlockArtistList)
+                {
+                    if (entry.ToLower().Contains(SearchArtistTextBox.Text.ToLower()))
+                    {
+                        ArtistBlockListBox.Items.Add("\"" + entry + "\"");
+                    }
+                }
+                ArtistGrid.Header = "[" + ArtistBlockListBox.Items.Count + "] Artists found";
+            }
+            else
+            {
+                ArtistGrid.Header = "[" + BlockArtistList.Count() + "] Artists blocked";
+            }
+        }
+
+        private void SearchComboTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (SearchComboTextBox.Text != "Search...")
+            {
+                ComboBlockListBox.Items.Clear();
+                foreach (string entry in BlockComboList)
+                {
+                    if (entry.ToLower().Contains(SearchComboTextBox.Text.ToLower()))
+                    {
+                        ComboBlockListBox.Items.Add("\"" + entry + "\"");
+                    }
+                }
+                ComboGrid.Header = "[" + ComboBlockListBox.Items.Count + "] Combos found";
+
+            }
+            else
+            {
+                ComboGrid.Header = "[" + BlockComboList.Count() + "] Combos blocked";
+            }
+        }
+
+        private void SearchSongTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                SearchSongTextBox.Text = "Search...";
+                Keyboard.ClearFocus();
+                LoadBlockList();
+            }
+        }
+
+        private void SearchArtistTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                SearchArtistTextBox.Text = "Search...";
+                Keyboard.ClearFocus();
+                LoadBlockList();
+            }
+        }
+
+        private void SearchComboTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                SearchComboTextBox.Text = "Search...";
+                Keyboard.ClearFocus();
+                LoadBlockList();
+            }
+        }
+
+        private void SongBlockListBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                SongBlockListBox.SelectedIndex = -1;
+            }
+        }
+
+        private void ArtistBlockListBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                ArtistBlockListBox.SelectedIndex = -1;
+            }
+        }
+
+        private void ComboBlockListBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                ComboBlockListBox.SelectedIndex = -1;
+            }
         }
     }
 }

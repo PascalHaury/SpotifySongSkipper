@@ -36,6 +36,8 @@ namespace SpotSkip
         private SettingsWindow SW = null;
         private bool settingsWindowActive = false;
 
+        int oldInterval = 0;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -46,9 +48,11 @@ namespace SpotSkip
         {
             try
             {
+                this.Title = "SpotSkip";
                 SettingsManager.createDefaultTable();
                 SettingsManager.readSettings();
-                localSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, 500);
+                localSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, globalVars.TimerInterval);
+                oldInterval = globalVars.TimerInterval;
                 localSpotifySongChecker.Tick += localSpotifySongChecker_Tick;
                 xmlWriter.createDefaultTable(globalVars.BlockListFilePath);
                 localSpotifySongChecker.Start();
@@ -111,6 +115,14 @@ namespace SpotSkip
                     }
                 }
             }
+
+            //Check if Timerinterval was changed
+            if (globalVars.TimerInterval != oldInterval)
+            {
+                localSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, globalVars.TimerInterval);
+                oldInterval = globalVars.TimerInterval;
+            }
+
 
             //Get the Current song playing on Spotify
             var spotifyProcess = Process.GetProcessesByName("Spotify").FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle));
@@ -179,6 +191,7 @@ namespace SpotSkip
             BlockComboButton.IsEnabled = false;
         }   //should be self explaining
 
+        #region GUI
         private void BlockArtistButton_Click(object sender, RoutedEventArgs e)
         {
             string Artist = currentlyPlaying.Split('-')[0]; //get the current artist
@@ -245,6 +258,7 @@ namespace SpotSkip
                 SW = null;
             }
         }
+
         private void MinimizeButtonImage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
@@ -252,7 +266,7 @@ namespace SpotSkip
 
         private void CloseButtonImage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            SettingsManager.writeSettings(globalVars.StartSpotify, globalVars.PlaySong, globalVars.SongsSkipped, globalVars.SongsPlayed);
+            SettingsManager.writeSettings(globalVars.StartSpotify, globalVars.PlaySong,globalVars.BlockListFilePath, globalVars.ErrorLogFilePath,globalVars.TimerInterval, globalVars.SongsSkipped, globalVars.SongsPlayed);
             Environment.Exit(0x01);
         }
 
@@ -283,5 +297,7 @@ namespace SpotSkip
                 SettingsButton.Content = "Settings";
             }
         }
+
+        #endregion
     }
 }

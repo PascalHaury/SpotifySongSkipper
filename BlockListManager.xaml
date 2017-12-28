@@ -5,26 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpotSkip"
         mc:Ignorable="d"
-        Title="BlockListManager" Height="311" Width="780" ResizeMode="CanMinimize" Background="#FF3F3F46" WindowStyle="None">
+        Title="BlockListManager" Height="350" Width="780" ResizeMode="CanMinimize" Background="#FF3F3F46" WindowStyle="None">
     <Grid>
-        <GroupBox x:Name="SongGrid" Header="Song Block" Margin="10,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
+        <GroupBox x:Name="SongGrid" Header="Song Block" Margin="10,35,0,0" HorizontalAlignment="Left" Width="250" Height="305" VerticalAlignment="Top">
             <Grid Margin="0,0,0,0">
-                <ListBox x:Name="SongBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top">
-                    <ListBoxItem Content="Test" FontSize="12"/>
-                </ListBox>
-                <Button x:Name="UnblockSongButton" Content="Unblock Song" Margin="0,200,0,0" Height="19" HorizontalAlignment="Left" Width="228" Click="UnblockSongButton_Click"/>
+                <ListBox x:Name="SongBlockListBox" HorizontalAlignment="Left" Width="228" Height="210" VerticalAlignment="Top" Margin="0,29,0,0" SelectionMode="Multiple" KeyDown="SongBlockListBox_KeyDown"/>
+                <Button x:Name="UnblockSongButton" Content="Unblock Song" Margin="0,239,0,0" Height="19" HorizontalAlignment="Left" Width="228" Click="UnblockSongButton_Click" VerticalAlignment="Top"/>
+                <TextBox x:Name="SearchSongTextBox" HorizontalAlignment="Left" Height="23" Margin="0,0,0,0" TextWrapping="Wrap" Text="Search..." VerticalAlignment="Top" Width="228" GotFocus="SearchSongTextBox_GotFocus" LostFocus="SearchSongTextBox_LostFocus" TextChanged="SearchSongTextBox_TextChanged" KeyDown="SearchSongTextBox_KeyDown"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="ArtistGrid" Header="Artist Block" Margin="265,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
+        <GroupBox x:Name="ArtistGrid" Header="Artist Block" Margin="265,35,0,0" HorizontalAlignment="Left" Width="250" Height="305" VerticalAlignment="Top">
             <Grid Margin="0,0,0,0">
-                <ListBox x:Name="ArtistBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top" FontSize="12"/>
-                <Button x:Name="UnblockArtistButton" Content="Unblock Artist" Margin="0,200,0,0" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="228" Click="UnblockArtistButton_Click"/>
+                <ListBox x:Name="ArtistBlockListBox" HorizontalAlignment="Left" Width="228" Height="210" VerticalAlignment="Top" FontSize="12" Margin="0,29,0,0" SelectionMode="Multiple" KeyDown="ArtistBlockListBox_KeyDown"/>
+                <Button x:Name="UnblockArtistButton" Content="Unblock Artist" Margin="0,239,0,0" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="228" Click="UnblockArtistButton_Click"/>
+                <TextBox x:Name="SearchArtistTextBox" HorizontalAlignment="Left" Height="23" Margin="0,0,0,0" TextWrapping="Wrap" Text="Search..." VerticalAlignment="Top" Width="228" GotFocus="SearchArtistTextBox_GotFocus" LostFocus="SearchArtistTextBox_LostFocus" TextChanged="SearchArtistTextBox_TextChanged" KeyDown="SearchArtistTextBox_KeyDown"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="ComboGrid" Header="Combo Block" Margin="520,35,0,0" HorizontalAlignment="Left" Width="250" Height="266" VerticalAlignment="Top">
+        <GroupBox x:Name="ComboGrid" Header="Combo Block" Margin="520,35,0,0" HorizontalAlignment="Left" Width="250" Height="305" VerticalAlignment="Top">
             <Grid Margin="0,0,0,0">
-                <ListBox x:Name="ComboBlockListBox" HorizontalAlignment="Left" Width="228" Height="200" VerticalAlignment="Top" FontSize="12"/>
-                <Button x:Name="UnblockComboButton" Content="Unblock Combo" Margin="0,200,0,0" Height="19" Click="UnblockComboButton_Click" HorizontalAlignment="Left" Width="228"/>
+                <ListBox x:Name="ComboBlockListBox" HorizontalAlignment="Left" Width="228" Height="210" VerticalAlignment="Top" FontSize="12" Margin="0,29,0,0" SelectionMode="Multiple" KeyDown="ComboBlockListBox_KeyDown"/>
+                <Button x:Name="UnblockComboButton" Content="Unblock Combo" Margin="0,239,0,0" Height="19" Click="UnblockComboButton_Click" HorizontalAlignment="Left" Width="228" VerticalAlignment="Top"/>
+                <TextBox x:Name="SearchComboTextBox" HorizontalAlignment="Left" Height="23" Margin="0,0,0,0" TextWrapping="Wrap" Text="Search..." VerticalAlignment="Top" Width="228" GotFocus="SearchComboTextBox_GotFocus" LostFocus="SearchComboTextBox_LostFocus" TextChanged="SearchComboTextBox_TextChanged" KeyDown="SearchComboTextBox_KeyDown"/>
             </Grid>
         </GroupBox>
         <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="BlockListManager" VerticalAlignment="Top" Height="30" Width="715" Foreground="#FFBABABA" FontSize="20" Margin="35,0,0,0" MouseDown="TitleTextBlock_MouseDown"/>

@@ -151,6 +151,20 @@ namespace SpotSkip
                 return false;
             }
         }
+
+        public bool logError(string _ex)
+        {
+            try
+            {
+                File.AppendAllLines(globalVars.ErrorLogFilePath, new String[] { _ex.ToString() });
+                return true;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(_ex.ToString(), "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
     }
 
     class FileIO_Read
@@ -223,12 +237,14 @@ namespace SpotSkip
                     XmlAttribute BlockListFile = doc.CreateAttribute("Path");
                     XmlAttribute ErrorLogFile = doc.CreateAttribute("Path");
                     XmlAttribute StartSpotify = doc.CreateAttribute("StartSpotify");
+                    XmlAttribute TimerInterval = doc.CreateAttribute("Interval");
                     XmlAttribute PlaySong = doc.CreateAttribute("PlaySong");
 
                     BlockListFile.Value = defaultVars.BlockListFilePath;
                     ErrorLogFile.Value = defaultVars.ErrorLogFilePath;
                     StartSpotify.Value = defaultVars.StartSpotify.ToString();
                     PlaySong.Value = defaultVars.PlaySong.ToString();
+                    TimerInterval.Value = defaultVars.TimerInterval.ToString();
 
                     XmlNode docnode = doc.CreateXmlDeclaration("1.0", "utf-8", null);
                     doc.AppendChild(docnode);
@@ -246,6 +262,10 @@ namespace SpotSkip
                     Setting = doc.CreateElement("Behaviour");
                     Setting.Attributes.Append(StartSpotify);
                     Setting.Attributes.Append(PlaySong);
+                    SettingsNode.AppendChild(Setting);
+
+                    Setting = doc.CreateElement("Timer");
+                    Setting.Attributes.Append(TimerInterval);
                     SettingsNode.AppendChild(Setting);
                     entries.AppendChild(SettingsNode);
 
@@ -294,6 +314,9 @@ namespace SpotSkip
                     setVars.StartSpotify = bool.Parse(Behaviour.Attributes["StartSpotify"].Value);
                     setVars.PlaySong = bool.Parse(Behaviour.Attributes["PlaySong"].Value);
 
+                    XmlNode Timer = xmlDoc.SelectSingleNode("Data/Settings/Timer");
+                    setVars.TimerInterval = int.Parse(Timer.Attributes["Interval"].Value);
+
                     XmlNode Skipped = xmlDoc.SelectSingleNode("Data/Logging/SongsSkipped");
                     setVars.SongsSkipped = int.Parse(Skipped.Attributes["SongsSkipped"].Value);
 
@@ -315,7 +338,7 @@ namespace SpotSkip
             }
         }
 
-        public bool writeSettings(bool startSpotify, bool playSong, string BlockListFilePath, string ErrorLogFilePath)
+        public bool writeSettings(bool startSpotify, bool playSong, string BlockListFilePath, string ErrorLogFilePath,int Interval, int songsSkipped, int songsPlayed)
         {
             try
             {
@@ -333,27 +356,8 @@ namespace SpotSkip
                 Settings.Attributes["StartSpotify"].Value = startSpotify.ToString();
                 Settings.Attributes["PlaySong"].Value = playSong.ToString();
 
-                xmlDoc.Save(SettingsFile);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                new FileIO_Write().logError(ex);
-                return false;
-            }
-        }
-        public bool writeSettings(bool startSpotify, bool playSong, int songsSkipped, int songsPlayed)
-        {
-            try
-            {
-                Variables setVars = new Variables();
-                XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.Load(SettingsFile);
-
-                XmlNode Settings = xmlDoc.SelectSingleNode("Data/Settings/Behaviour");
-                Settings.Attributes["StartSpotify"].Value = startSpotify.ToString();
-                Settings.Attributes["PlaySong"].Value = playSong.ToString();
-
+                XmlNode TimerInterval = xmlDoc.SelectSingleNode("Data/Settings/Timer");
+                TimerInterval.Attributes["Interval"].Value = Interval.ToString();
 
                 XmlNode Skipped = xmlDoc.SelectSingleNode("Data/Logging/SongsSkipped");
                 Skipped.Attributes["SongsSkipped"].Value = songsSkipped.ToString();
@@ -370,42 +374,12 @@ namespace SpotSkip
                 return false;
             }
         }
-
-        public bool writeSettings(bool startSpotify, bool playSong, string BlockListFilePath, string ErrorLogFilePath, int songsSkipped, int songsPlayed)
-        {
-            try
-            {
-                Variables setVars = new Variables();
-                XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.Load(SettingsFile);
-
-                XmlNode BlockList = xmlDoc.SelectSingleNode("Data/Settings/BlockListFile");
-                BlockList.Attributes["Path"].Value = BlockListFilePath.ToString();
-
-                XmlNode ErrorLog = xmlDoc.SelectSingleNode("Data/Settings/ErrorLogFile");
-                ErrorLog.Attributes["Path"].Value = ErrorLogFilePath.ToString();
-
-                XmlNode Settings = xmlDoc.SelectSingleNode("Data/Settings/Behaviour");
-                Settings.Attributes["StartSpotify"].Value = startSpotify.ToString();
-                Settings.Attributes["PlaySong"].Value = playSong.ToString();
-
-
-                XmlNode Skipped = xmlDoc.SelectSingleNode("Data/Logging/SongsSkipped");
-                Skipped.Attributes["SongsSkipped"].Value = songsSkipped.ToString();
-
-                XmlNode Played = xmlDoc.SelectSingleNode("Data/Logging/SongsPlayed");
-                Played.Attributes["SongsPlayed"].Value = songsPlayed.ToString();
-
-                xmlDoc.Save(SettingsFile);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                new FileIO_Write().logError(ex);
-                return false;
-            }
-        }
-
+        /// <summary>
+        /// Updates the log-Variables in the logfile
+        /// </summary>
+        /// <param name="SongsSkipped">Amount of how many songs were skipped</param>
+        /// <param name="SongsPlayed">Amount of how many songs were played</param>
+        /// <returns>[BOOL] success/fail</returns>
         public bool updateLog(int SongsSkipped, int SongsPlayed)
         {
             try
