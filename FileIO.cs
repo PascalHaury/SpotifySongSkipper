@@ -223,15 +223,27 @@ namespace SpotSkip
     class Settings
     {
         private string ApplicatioonPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
-        private string SettingsFile = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\Settings.xml";
+        private string SettingsFilePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\Settings.xml";
 
         public bool createDefaultTable()
         {
             try
             {
-                if (!File.Exists(SettingsFile))
+                Variables defaultVars = new Variables();
+
+                if (File.Exists(SettingsFilePath))
                 {
-                    Variables defaultVars = new Variables();
+                    File.Move(SettingsFilePath, defaultVars.SettingsFilePath);
+                    SettingsFilePath = defaultVars.SettingsFilePath;
+                }
+                else
+                {
+                    SettingsFilePath = defaultVars.SettingsFilePath;
+                }
+
+
+                if (!File.Exists(SettingsFilePath))
+                {
                     XmlDocument doc = new XmlDocument();
                     //Attributes
                     XmlAttribute BlockListFile = doc.CreateAttribute("Path");
@@ -283,7 +295,7 @@ namespace SpotSkip
                     logNode.AppendChild(Entry);
                     entries.AppendChild(logNode);
                     doc.AppendChild(entries);
-                    doc.Save(SettingsFile);
+                    doc.Save(SettingsFilePath);
                 }
                 return true;
             }
@@ -299,10 +311,10 @@ namespace SpotSkip
             try
             {
                 Variables setVars = new Variables();
-                if (File.Exists(SettingsFile))
+                if (File.Exists(SettingsFilePath))
                 {
                     XmlDocument xmlDoc = new XmlDocument();
-                    xmlDoc.Load(SettingsFile);
+                    xmlDoc.Load(SettingsFilePath);
 
                     XmlNode BLF = xmlDoc.SelectSingleNode("Data/Settings/BlockListFile");
                     setVars.BlockListFilePath = BLF.Attributes["Path"].Value;
@@ -323,7 +335,7 @@ namespace SpotSkip
                     XmlNode Played = xmlDoc.SelectSingleNode("Data/Logging/SongsPlayed");
                     setVars.SongsPlayed = int.Parse(Played.Attributes["SongsPlayed"].Value);
 
-                    xmlDoc.Save(SettingsFile);
+                    xmlDoc.Save(SettingsFilePath);
                     return true;
                 }
                 else
@@ -344,7 +356,7 @@ namespace SpotSkip
             {
                 Variables setVars = new Variables();
                 XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.Load(SettingsFile);
+                xmlDoc.Load(SettingsFilePath);
 
                 XmlNode BlockList = xmlDoc.SelectSingleNode("Data/Settings/BlockListFile");
                 BlockList.Attributes["Path"].Value = BlockListFilePath.ToString();
@@ -365,7 +377,7 @@ namespace SpotSkip
                 XmlNode Played = xmlDoc.SelectSingleNode("Data/Logging/SongsPlayed");
                 Played.Attributes["SongsPlayed"].Value = songsPlayed.ToString();
 
-                xmlDoc.Save(SettingsFile);
+                xmlDoc.Save(SettingsFilePath);
                 return true;
             }
             catch (Exception ex)
@@ -384,11 +396,11 @@ namespace SpotSkip
         {
             try
             {
-                if (File.Exists(SettingsFile))
+                if (File.Exists(SettingsFilePath))
                 {
                     Variables setVars = new Variables();
                     XmlDocument xmlDoc = new XmlDocument();
-                    xmlDoc.Load(SettingsFile);
+                    xmlDoc.Load(SettingsFilePath);
 
                     XmlNode Skipped = xmlDoc.SelectSingleNode("Data/Logging/SongsSkipped");
                     Skipped.Attributes["SongsSkipped"].Value = SongsSkipped.ToString();
@@ -396,7 +408,7 @@ namespace SpotSkip
                     XmlNode Played = xmlDoc.SelectSingleNode("Data/Logging/SongsPlayed");
                     Played.Attributes["SongsPlayed"].Value = SongsPlayed.ToString();
 
-                    xmlDoc.Save(SettingsFile);
+                    xmlDoc.Save(SettingsFilePath);
                     return true;
                 }
                 return false;

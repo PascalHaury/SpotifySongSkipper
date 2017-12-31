@@ -11,7 +11,7 @@ namespace SpotSkip
         private static bool storage5 = true;
         private static bool storage6 = false;
         private static int storage7 = 500;
-
+        private static string storage8 = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\Settings.xml";
 
 
         /// <summary>
@@ -121,6 +121,20 @@ namespace SpotSkip
                 {
                     storage7 = value;
                 }
+            }
+        }
+        /// <summary>
+        /// The path to the settings file
+        /// </summary>
+        public string SettingsFilePath
+        {
+            get
+            {
+                return storage8;
+            }
+            set
+            {
+                storage8 = value;
             }
         }
     }

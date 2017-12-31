@@ -22,8 +22,6 @@ namespace SpotSkip
     /// </summary>
     public partial class SettingsWindow : Window
     {
-        private string SettingsFile = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\Settings.xml";
-
         public SettingsWindow()
         {
             InitializeComponent();
@@ -46,8 +44,8 @@ namespace SpotSkip
         {
             Variables getVars = new Variables();
             FileSystemWatcher fsw = new FileSystemWatcher();
-            fsw.Path = Path.GetDirectoryName(SettingsFile);
-            fsw.Filter = Path.GetFileName(SettingsFile);
+            fsw.Path = Path.GetDirectoryName(getVars.SettingsFilePath);
+            fsw.Filter = Path.GetFileName(getVars.SettingsFilePath);
             fsw.NotifyFilter = NotifyFilters.LastWrite;
             fsw.IncludeSubdirectories = false;
             fsw.Changed += new FileSystemEventHandler(Fsw_Changed);
@@ -61,14 +59,14 @@ namespace SpotSkip
 
         private void loadStatistics()
         {
-            Variables statistics = new Variables();
-            XElement root = XElement.Parse(File.ReadAllText(statistics.BlockListFilePath));
+            Variables getVars = new Variables();
+            XElement root = XElement.Parse(File.ReadAllText(getVars.BlockListFilePath));
 
             var blocksong = root.Descendants("Song");
             var blockArtist = root.Descendants("Artist");
             var blockCombo = root.Descendants("Combo");
-            SongsPlayedLabel.Content = "Songs played: " + statistics.SongsPlayed;
-            SongsSkippedLabel.Content = "Songs skipped: " + statistics.SongsSkipped;
+            SongsPlayedLabel.Content = "Songs played: " + getVars.SongsPlayed;
+            SongsSkippedLabel.Content = "Songs skipped: " + getVars.SongsSkipped;
             SongBlockLabel.Content = "Songs blocked: " + blocksong.Count();
             ArtistBlockLabel.Content = "Artists blocked: " + blockArtist.Count();
             ComboBlockLabel.Content = "Combos blocked: " + blockCombo.Count();
@@ -138,10 +136,14 @@ namespace SpotSkip
                 if ((bool)BlockListSelector.ShowDialog())
                 {
                     BlockListFilePathTextBox.Text = BlockListSelector.SelectedPath + "\\BlockList.xml";
+                    BlockListFilePathTextBox.IsReadOnly = false;
                 }
-                
-
-                BlockListFilePathTextBox.IsReadOnly = false;
+                else
+                {
+                    BlockListFilePathTextBox.IsReadOnly = true;
+                    BlockListFilePathTextBox.Text = new Variables().BlockListFilePath;
+                    OverrideBlockListPathCheckBox.IsChecked = false;
+                }
             }
             else
             {
@@ -162,8 +164,14 @@ namespace SpotSkip
                 if ((bool)ErrorLogSelector.ShowDialog())
                 {
                     ErrorLogFilePathTextBox.Text = ErrorLogSelector.SelectedPath + "ErrorLog.log";
+                    ErrorLogFilePathTextBox.IsReadOnly = false;
                 }
-                ErrorLogFilePathTextBox.IsReadOnly = false;
+                else
+                {
+                    ErrorLogFilePathTextBox.IsReadOnly = true;
+                    ErrorLogFilePathTextBox.Text = new Variables().ErrorLogFilePath;
+                    OverrideErrorLogPathCheckBox.IsChecked = false;
+                }
                 
             }
             else
@@ -398,6 +406,11 @@ namespace SpotSkip
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             LoadSettings();
+        }
+
+        private void OverrideBlockListPathCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

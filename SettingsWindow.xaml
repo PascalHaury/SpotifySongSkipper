@@ -47,7 +47,7 @@
         </Image>
         <TextBox x:Name="BlockListFilePathTextBox" HorizontalAlignment="Left" Height="23" Margin="10,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" GotFocus="BlockListFilePathTextBox_GotFocus" LostFocus="BlockListFilePathTextBox_LostFocus" Text="Blocklist File Path" IsReadOnly="True"/>
         <TextBox x:Name="ErrorLogFilePathTextBox" HorizontalAlignment="Left" Height="23" Margin="10,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" GotFocus="ErrorLogFilePathTextBox_GotFocus" LostFocus="ErrorLogFilePathTextBox_LostFocus" Text="Errorlog File Path" IsReadOnly="True"/>
-        <CheckBox x:Name="OverrideBlockListPathCheckBox" Content="Override" HorizontalAlignment="Left" Margin="451,39,0,0" VerticalAlignment="Top" Width="104" Click="OverrideBlockListPathCheckBox_Click"/>
+        <CheckBox x:Name="OverrideBlockListPathCheckBox" Content="Override" HorizontalAlignment="Left" Margin="451,39,0,0" VerticalAlignment="Top" Width="104" Click="OverrideBlockListPathCheckBox_Click" />
         <CheckBox x:Name="OverrideErrorLogPathCheckBox" Content="Override" HorizontalAlignment="Left" Margin="451,75,0,0" VerticalAlignment="Top" Width="104" Click="OverrideErrorLogPathCheckBox_Click" />
         <CheckBox x:Name="SpotifyAutoStartCheckBox" Content="Spotify auto-start" HorizontalAlignment="Left" Margin="10,105,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="SpotifyAutoPlayCheckBox" Content="Spotify auto-play" HorizontalAlignment="Left" Margin="164,105,0,0" VerticalAlignment="Top" Click="SpotifyAutoPlayCheckBox_Click"/>
