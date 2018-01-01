@@ -12,8 +12,9 @@ namespace SpotSkip
         private static bool storage6 = false;
         private static int storage7 = 500;
         private static string storage8 = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\Settings.xml";
-        private static string storage9 = "0.8";
-
+        private static string storage9 = "0.9";
+        private static string storage10 = "Auto";
+        private static string storage11 = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\SpotSkipUpdater\\SpotSkipUpdate.exe";
 
         /// <summary>
         /// The path to the block list file
@@ -140,6 +141,53 @@ namespace SpotSkip
             get
             {
                 return storage9;
+            }
+        }
+
+        public string UpdateBehaviour
+        {
+            get
+            {
+                return storage10;
+            }
+            set
+            {
+                if (value.Contains("Do not Update"))
+                {
+                    storage10 = "None";
+                }
+                else if (value.Contains("Search for Updates, but don't install"))
+                {
+                    storage10 = "Inform";
+                }
+                else if (value.Contains("Auto Updates"))
+                {
+                    storage10 = "Auto";
+                }
+                else if (value == "Auto")
+                {
+                    storage10 = value;
+                }
+                else if (value == "Inform")
+                {
+                    storage10 = value;
+                }
+                else if (value == "None")
+                {
+                    storage10 = value;
+                }
+                else
+                {
+                    storage10 = "Auto";
+                }
+            }
+        }
+
+        public string UpdaterPath
+        {
+            get
+            {
+                return storage11;
             }
         }
     }

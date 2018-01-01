@@ -14,6 +14,7 @@ using System.IO;
 using Ookii;
 using System.Xml;
 using System.Xml.Linq;
+using System.Diagnostics;
 
 namespace SpotSkip
 {
@@ -22,6 +23,9 @@ namespace SpotSkip
     /// </summary>
     public partial class SettingsWindow : Window
     {
+
+        private bool UpdEna = false;
+        private string LocalUpdateBehaviour = string.Empty;
         public SettingsWindow()
         {
             InitializeComponent();
@@ -30,34 +34,53 @@ namespace SpotSkip
         private void LoadSettings()
         {
             this.Title = "SpotSkip Settings";
+            new Settings().ReadSettings();
             Variables getVars = new Variables();
-            loadStatistics();
+            LoadStatistics();
             ErrorLogFilePathTextBox.Text = getVars.ErrorLogFilePath;
             BlockListFilePathTextBox.Text = getVars.BlockListFilePath;
             SpotifyAutoPlayCheckBox.IsChecked =getVars.PlaySong;
             SpotifyAutoStartCheckBox.IsChecked = getVars.StartSpotify;
             FrequencySlider.Value = getVars.TimerInterval;
-            initializeFileSystemWatcher();
+            switch (getVars.UpdateBehaviour)
+            {
+                case "None":
+                    UpdateBehaviourComboBox.SelectedIndex = 0;
+                    break;
+                case "Inform":
+                    UpdateBehaviourComboBox.SelectedIndex = 1;
+                    break;
+                case "Auto":
+                    UpdateBehaviourComboBox.SelectedIndex = 2;
+                    break;
+                default:
+                    UpdateBehaviourComboBox.SelectedIndex = 2;
+                    break;
+            }
+            InitializeFileSystemWatcher();
+            //UpdEna = true;
         }
 
-        private void initializeFileSystemWatcher()
+        private void InitializeFileSystemWatcher()
         {
             Variables getVars = new Variables();
-            FileSystemWatcher fsw = new FileSystemWatcher();
-            fsw.Path = Path.GetDirectoryName(getVars.SettingsFilePath);
-            fsw.Filter = Path.GetFileName(getVars.SettingsFilePath);
-            fsw.NotifyFilter = NotifyFilters.LastWrite;
-            fsw.IncludeSubdirectories = false;
+            FileSystemWatcher fsw = new FileSystemWatcher
+            {
+                Path = Path.GetDirectoryName(getVars.SettingsFilePath),
+                Filter = Path.GetFileName(getVars.SettingsFilePath),
+                NotifyFilter = NotifyFilters.LastWrite,
+                IncludeSubdirectories = false
+            };
             fsw.Changed += new FileSystemEventHandler(Fsw_Changed);
             fsw.EnableRaisingEvents = true;
         }
 
         private void Fsw_Changed(object sender, FileSystemEventArgs e)
         {
-            Dispatcher.Invoke(() => loadStatistics());
+            Dispatcher.Invoke(() => LoadStatistics());
         }
 
-        private void loadStatistics()
+        private void LoadStatistics()
         {
             Variables getVars = new Variables();
             XElement root = XElement.Parse(File.ReadAllText(getVars.BlockListFilePath));
@@ -128,11 +151,13 @@ namespace SpotSkip
         {
             if ((bool)OverrideBlockListPathCheckBox.IsChecked)
             {
-                Ookii.Dialogs.Wpf.VistaFolderBrowserDialog BlockListSelector = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
-                BlockListSelector.Description = "Please select a folder...";
-                BlockListSelector.UseDescriptionForTitle = true;
-                BlockListSelector.ShowNewFolderButton = true;
-                BlockListSelector.SelectedPath = BlockListFilePathTextBox.Text;
+                Ookii.Dialogs.Wpf.VistaFolderBrowserDialog BlockListSelector = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
+                {
+                    Description = "Please select a folder...",
+                    UseDescriptionForTitle = true,
+                    ShowNewFolderButton = true,
+                    SelectedPath = BlockListFilePathTextBox.Text
+                };
                 if ((bool)BlockListSelector.ShowDialog())
                 {
                     BlockListFilePathTextBox.Text = BlockListSelector.SelectedPath + "\\BlockList.xml";
@@ -156,11 +181,13 @@ namespace SpotSkip
         {
             if ((bool)OverrideErrorLogPathCheckBox.IsChecked)
             {
-                Ookii.Dialogs.Wpf.VistaFolderBrowserDialog ErrorLogSelector = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
-                ErrorLogSelector.Description = "Please select a folder...";
-                ErrorLogSelector.UseDescriptionForTitle = true;
-                ErrorLogSelector.ShowNewFolderButton = true;
-                ErrorLogSelector.SelectedPath = ErrorLogFilePathTextBox.Text;
+                Ookii.Dialogs.Wpf.VistaFolderBrowserDialog ErrorLogSelector = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
+                {
+                    Description = "Please select a folder...",
+                    UseDescriptionForTitle = true,
+                    ShowNewFolderButton = true,
+                    SelectedPath = ErrorLogFilePathTextBox.Text
+                };
                 if ((bool)ErrorLogSelector.ShowDialog())
                 {
                     ErrorLogFilePathTextBox.Text = ErrorLogSelector.SelectedPath + "ErrorLog.log";
@@ -224,10 +251,13 @@ namespace SpotSkip
             {
                 setVars.StartSpotify = (bool)SpotifyAutoStartCheckBox.IsChecked;
             }
-
             if (setVars.TimerInterval != FrequencySlider.Value)
             {
                 setVars.TimerInterval = Convert.ToInt32(FrequencySlider.Value.ToString("000"));
+            }
+            if (setVars.UpdateBehaviour != LocalUpdateBehaviour)
+            {
+                setVars.UpdateBehaviour = LocalUpdateBehaviour;
             }
             #region Copy/Create Error/BlockListFile
             MessageBoxResult MR;
@@ -274,24 +304,24 @@ namespace SpotSkip
                     {
                         if (System.IO.Directory.Exists(setVars.BlockListFilePath))
                         {
-                            new FileIO_Write().createDefaultTable(setVars.BlockListFilePath);
+                            new FileIO_Write().CreateDefaultTable(setVars.BlockListFilePath);
                         }
                         else
                         {
                             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(setVars.BlockListFilePath));
-                            new FileIO_Write().createDefaultTable(setVars.BlockListFilePath);
+                            new FileIO_Write().CreateDefaultTable(setVars.BlockListFilePath);
                         }
                     }
                     if (File.Exists(setVars.ErrorLogFilePath))
                     {
                         if (System.IO.Directory.Exists(setVars.ErrorLogFilePath))
                         {
-                            new FileIO_Write().logError("");
+                            new FileIO_Write().LogError("");
                         }
                         else
                         {
                             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(setVars.ErrorLogFilePath));
-                            new FileIO_Write().logError("");
+                            new FileIO_Write().LogError("");
                         }
                     }
                 }
@@ -331,12 +361,12 @@ namespace SpotSkip
                     {
                         if (System.IO.Directory.Exists(setVars.BlockListFilePath))
                         {
-                            new FileIO_Write().createDefaultTable(setVars.BlockListFilePath);
+                            new FileIO_Write().CreateDefaultTable(setVars.BlockListFilePath);
                         }
                         else
                         {
                             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(setVars.BlockListFilePath));
-                            new FileIO_Write().createDefaultTable(setVars.BlockListFilePath);
+                            new FileIO_Write().CreateDefaultTable(setVars.BlockListFilePath);
                         }
                     }
                 }
@@ -368,19 +398,19 @@ namespace SpotSkip
                     {
                         if (System.IO.Directory.Exists(setVars.ErrorLogFilePath))
                         {
-                            new FileIO_Write().logError("");
+                            new FileIO_Write().LogError("");
                         }
                         else
                         {
                             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(setVars.ErrorLogFilePath));
-                            new FileIO_Write().logError("");
+                            new FileIO_Write().LogError("");
                         }
                     }
                 }
             }
             #endregion
 
-            new Settings().writeSettings(setVars.StartSpotify, setVars.PlaySong, setVars.BlockListFilePath, setVars.ErrorLogFilePath, setVars.TimerInterval, setVars.SongsSkipped, setVars.SongsPlayed);
+            new Settings().WriteSettings(setVars.StartSpotify, setVars.PlaySong, setVars.BlockListFilePath, setVars.ErrorLogFilePath, setVars.TimerInterval, setVars.SongsSkipped, setVars.SongsPlayed, setVars.UpdateBehaviour);
 
             SaveButton.Content = "Saved";
             this.Close();
@@ -408,9 +438,57 @@ namespace SpotSkip
             LoadSettings();
         }
 
-        private void OverrideBlockListPathCheckBox_Checked(object sender, RoutedEventArgs e)
+        private void ManualUpdateButton_Click(object sender, RoutedEventArgs e)
         {
+            NetClass NetFunct = new NetClass();
+            string OnlineVersion = string.Empty;
+            string InstalledVerion = string.Empty;
+            string Size = string.Empty;
 
+            if (NetFunct.CheckForUpdates(out InstalledVerion, out OnlineVersion, out Size))
+            {
+                MessageBoxResult MRes = MessageBox.Show("A new Update was found!\r\nInstalled version: " + InstalledVerion + "\r\nOnline version: " + OnlineVersion + "\r\nUpdate size: " + Size + "\r\n\r\nDo you want to update?", "Update", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+                if (MRes == MessageBoxResult.Yes)
+                {
+                    Process.Start(new Variables().UpdaterPath);
+                }
+            }
+            else
+            {
+                MessageBox.Show("No Update was found!\r\nInstalled version: " + InstalledVerion + "\r\nOnline version: " + OnlineVersion, "Update", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK);
+            }
+        }
+
+        private void UpdateBehaviourComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (UpdEna)
+                {
+                    LocalUpdateBehaviour = UpdateBehaviourComboBox.SelectedItem.ToString();
+                    if (LocalUpdateBehaviour.Contains("Do not Update"))
+                    {
+                        LocalUpdateBehaviour = "None";
+                    }
+                    else if (LocalUpdateBehaviour.Contains("Search for Updates, but don't install"))
+                    {
+                        LocalUpdateBehaviour = "Inform";
+                    }
+                    else if (LocalUpdateBehaviour.Contains("Auto Updates"))
+                    {
+                        LocalUpdateBehaviour = "Auto";
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private void UpdateBehaviourComboBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            UpdEna = true;
         }
     }
 }

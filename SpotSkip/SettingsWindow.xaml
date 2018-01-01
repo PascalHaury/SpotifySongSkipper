@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpotSkip"
         mc:Ignorable="d"
-        Title="MainWindow" Height="245" Width="739.666" ResizeMode="CanMinimize" Background="#FF3F3F46" WindowStyle="None" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded"
+        Title="MainWindow" Height="245" Width="739.666" ResizeMode="CanMinimize" Background="#FF3F3F46" WindowStyle="None" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" 
         >
     <Grid>
         <TextBlock x:Name="TitleTextBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text=" Settings" VerticalAlignment="Top" Height="30" Width="650" Foreground="#FFBABABA" FontSize="20" Margin="30,0,0,0" MouseDown="TitleTextBlock_MouseDown" Background="#FF404040"/>
@@ -68,6 +68,12 @@
 
 
         </GroupBox>
+        <ComboBox x:Name="UpdateBehaviourComboBox" HorizontalAlignment="Left" Margin="170,206,0,0" VerticalAlignment="Top" Width="275" SelectedIndex="1" SelectionChanged="UpdateBehaviourComboBox_SelectionChanged" Loaded="UpdateBehaviourComboBox_Loaded">
+            <ComboBoxItem Content="Do not Update"/>
+            <ComboBoxItem Content="Search for Updates, but don't install"/>
+            <ComboBoxItem Content="Auto Updates"/>
+        </ComboBox>
+        <Button x:Name="ManualUpdateButton" Content="Update" HorizontalAlignment="Left" Margin="451,206,0,0" VerticalAlignment="Top" Width="75" Click="ManualUpdateButton_Click"/>
 
     </Grid>
 </Window>

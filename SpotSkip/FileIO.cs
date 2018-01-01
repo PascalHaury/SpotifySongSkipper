@@ -14,7 +14,7 @@ namespace SpotSkip
         private Variables globalVars = new Variables();
         public enum BlockType { SongBlock, ArtistBlock, ComboBlock, none };
 
-        public bool createDefaultTable(string path_to_File)
+        public bool CreateDefaultTable(string path_to_File)
         {
             if (!Directory.Exists(Path.GetDirectoryName(path_to_File)))
             {
@@ -45,14 +45,14 @@ namespace SpotSkip
                 }
                 catch (Exception ex)
                 {
-                    logError(ex);
+                    LogError(ex);
                     return false;
                 }
             }
             return false;
         }
 
-        public bool addEntry(string Entry, BlockType BT)
+        public bool AddEntry(string Entry, BlockType BT)
         {
             try
             {
@@ -97,12 +97,12 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                logError(ex);
+                LogError(ex);
                 return false;
             }
         }
 
-        public bool removeEntry(string Entry, BlockType BT)
+        public bool RemoveEntry(string Entry, BlockType BT)
         {
             try
             {
@@ -133,12 +133,12 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                logError(ex);
+                LogError(ex);
                 return false;
             }
         }
 
-        public bool logError(Exception _ex)
+        public bool LogError(Exception _ex)
         {
             try
             {
@@ -152,7 +152,7 @@ namespace SpotSkip
             }
         }
 
-        public bool logError(string _ex)
+        public bool LogError(string _ex)
         {
             try
             {
@@ -171,7 +171,7 @@ namespace SpotSkip
     {
         private Variables globalVars = new Variables();
 
-        public bool searchForEntry(string CurrentlyPlaying)
+        public bool SearchForEntry(string CurrentlyPlaying)
         {
             try
             {
@@ -214,7 +214,7 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                new FileIO_Write().logError(ex);
+                new FileIO_Write().LogError(ex);
                 return false;
             }
         }
@@ -223,9 +223,9 @@ namespace SpotSkip
     class Settings
     {
         private string ApplicationPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
-        private string SettingsFilePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\Settings.xml";
+        private string SettingsFilePath = new Variables().SettingsFilePath;
 
-        public bool createDefaultTable()
+        public bool CreateDefaultTable()
         {
             try
             {
@@ -252,6 +252,7 @@ namespace SpotSkip
                     XmlAttribute TimerInterval = doc.CreateAttribute("Interval");
                     XmlAttribute PlaySong = doc.CreateAttribute("PlaySong");
                     XmlAttribute ProgramVersion = doc.CreateAttribute("ProgramVersion");
+                    XmlAttribute UpdateBehaviour = doc.CreateAttribute("UpdateBehaviour");
 
                     BlockListFile.Value = defaultVars.BlockListFilePath;
                     ErrorLogFile.Value = defaultVars.ErrorLogFilePath;
@@ -259,6 +260,7 @@ namespace SpotSkip
                     PlaySong.Value = defaultVars.PlaySong.ToString();
                     TimerInterval.Value = defaultVars.TimerInterval.ToString();
                     ProgramVersion.Value = defaultVars.VersionNumber;
+                    UpdateBehaviour.Value = defaultVars.UpdateBehaviour;
 
                     XmlNode docnode = doc.CreateXmlDeclaration("1.0", "utf-8", null);
                     doc.AppendChild(docnode);
@@ -307,12 +309,12 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                new FileIO_Write().logError(ex);
+                new FileIO_Write().LogError(ex);
                 return false;
             }
         }
 
-        public bool readSettings()
+        public bool ReadSettings()
         {
             try
             {
@@ -336,6 +338,9 @@ namespace SpotSkip
                     XmlNode Timer = xmlDoc.SelectSingleNode("Data/Settings/Timer");
                     setVars.TimerInterval = int.Parse(Timer.Attributes["Interval"].Value);
 
+                    XmlNode Update = xmlDoc.SelectSingleNode("Data/Settings/Version");
+                    setVars.UpdateBehaviour = Update.Attributes["UpdateBehaviour"].Value;
+
                     XmlNode Skipped = xmlDoc.SelectSingleNode("Data/Logging/SongsSkipped");
                     setVars.SongsSkipped = int.Parse(Skipped.Attributes["SongsSkipped"].Value);
 
@@ -352,12 +357,12 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                new FileIO_Write().logError(ex);
+                new FileIO_Write().LogError(ex);
                 return false;
             }
         }
 
-        public bool writeSettings(bool startSpotify, bool playSong, string BlockListFilePath, string ErrorLogFilePath,int Interval, int songsSkipped, int songsPlayed)
+        public bool WriteSettings(bool startSpotify, bool playSong, string BlockListFilePath, string ErrorLogFilePath,int Interval, int songsSkipped, int songsPlayed, string UpdateBehaviour)
         {
             try
             {
@@ -378,6 +383,9 @@ namespace SpotSkip
                 XmlNode TimerInterval = xmlDoc.SelectSingleNode("Data/Settings/Timer");
                 TimerInterval.Attributes["Interval"].Value = Interval.ToString();
 
+                XmlNode Update = xmlDoc.SelectSingleNode("Data/Settings/Version");
+                Update.Attributes["UpdateBehaviour"].Value = UpdateBehaviour;
+
                 XmlNode VersionNumber = xmlDoc.SelectSingleNode("Data/Settings/Version");
                 VersionNumber.Attributes["ProgramVersion"].Value = setVars.VersionNumber;
 
@@ -392,12 +400,12 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                new FileIO_Write().logError(ex);
+                new FileIO_Write().LogError(ex);
                 return false;
             }
         }
 
-        public bool UpdateVersionNumber()
+        public string UpdateVersionNumber()
         {
             try
             {
@@ -411,14 +419,14 @@ namespace SpotSkip
                     Version.Attributes["ProgramVersion"].Value = setVars.VersionNumber;
                     
                     xmlDoc.Save(SettingsFilePath);
-                    return true;
+                    return setVars.VersionNumber;
                 }
-                return false;
+                return "0.0";
             }
             catch (Exception ex)
             {
-                new FileIO_Write().logError(ex);
-                return false;
+                new FileIO_Write().LogError(ex);
+                return "0.0";
             }
         }
 
@@ -428,7 +436,7 @@ namespace SpotSkip
         /// <param name="SongsSkipped">Amount of how many songs were skipped</param>
         /// <param name="SongsPlayed">Amount of how many songs were played</param>
         /// <returns>[BOOL] success/fail</returns>
-        public bool updateLog(int SongsSkipped, int SongsPlayed)
+        public bool UpdateLog(int SongsSkipped, int SongsPlayed)
         {
             try
             {
@@ -451,7 +459,7 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                new FileIO_Write().logError(ex);
+                new FileIO_Write().LogError(ex);
                 return false;
             }
         }

@@ -18,10 +18,12 @@ namespace SpotSkipUpdate
 
         static void Main(string[] args)
         {
-            string UpdateFolderPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\Update";
-            string OldVersionPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\Old";
-            string AppPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            AppPath = AppPath.Replace(AppPath.Split('\\').Last(), "");
+            string UpdateFolderPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Replace("file:\\", "") + "\\Update";
+            string OldVersionPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Replace("file:\\", "") + "\\Old";
+            string AppPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Replace("file:\\", "");
+            string SpotSkipPath = AppPath.Replace("\\SpotSkipUpdater", "");
+            string UpdateZipFile = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Replace("file:\\", "");
+            //AppPath = AppPath.Replace(AppPath.Split('\\').Last(), "");
 
             string OnlineVersion = string.Empty;
             string InstalledVersion = string.Empty;
@@ -29,8 +31,11 @@ namespace SpotSkipUpdate
             string DownloadURL = string.Empty;
             string UpdateFileName = string.Empty;
 
+            //Console.WriteLine("DBG: AppPath: " + AppPath);
+            //Console.ReadLine();
+
             Console.WriteLine("Checking for Updates:");
-            InstalledVersion = getVersionInstalled();
+            InstalledVersion = GetVersionInstalled();
 
             foreach (string line in HttpGet("https://api.github.com/repos/theHaury/SpotifySongSkipper/releases/latest").Split(new String[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -62,7 +67,7 @@ namespace SpotSkipUpdate
             else
             {
                 UpdateFileName = DownloadURL.Split('/').Last();
-
+                UpdateZipFile = AppPath + "\\" + DownloadURL.Split('/').Last();
 
                 Console.WriteLine("\r\nDownloading new Version...");
                 using (var client = new WebClient())
@@ -77,7 +82,7 @@ namespace SpotSkipUpdate
                 Directory.CreateDirectory(UpdateFolderPath);
                 Directory.CreateDirectory(OldVersionPath);
 
-                foreach (string file in Directory.GetFiles(AppPath, "*.*", SearchOption.TopDirectoryOnly))
+                foreach (string file in Directory.GetFiles(SpotSkipPath, "*.*", SearchOption.TopDirectoryOnly))
                 {
                     if (!file.Contains("SpotSkipUpdate.exe"))
                     {
@@ -92,18 +97,18 @@ namespace SpotSkipUpdate
                     }
 
                 }
-                ZipFile.ExtractToDirectory(AppPath + "SpotSkipUpdater\\" + DownloadURL.Split('/').Last(), UpdateFolderPath);
+                ZipFile.ExtractToDirectory(UpdateZipFile, UpdateFolderPath);
                 foreach (string file in Directory.GetFiles(UpdateFolderPath, "*.*", SearchOption.TopDirectoryOnly))
                 {
                     string FileName = Path.GetFileName(file);
-                    File.Move(file, AppPath + "\\" + FileName);
+                    File.Move(file, SpotSkipPath + "\\" + FileName);
                 }
-                File.Delete(AppPath + "SpotSkipUpdater\\" + DownloadURL.Split('/').Last());
+                File.Delete(UpdateZipFile);
                 Directory.Delete(UpdateFolderPath, true);
                 Console.WriteLine("Done!\r\nPress any key to exit...");
                 Console.ReadKey();
                 Console.WriteLine("Starting SpotSkip now...");
-                System.Diagnostics.Process.Start(AppPath + "\\SpotSkip.exe");
+                System.Diagnostics.Process.Start(SpotSkipPath + "\\SpotSkip.exe");
 
             }
         }
@@ -132,7 +137,7 @@ namespace SpotSkipUpdate
             return (Math.Sign(inFile) * num).ToString() + suf[place];
         }
 
-        private static string getVersionInstalled()
+        private static string GetVersionInstalled()
         {
             try
             {
@@ -143,7 +148,7 @@ namespace SpotSkipUpdate
                 XmlNode Version = xmlDoc.SelectSingleNode("Data/Settings/Version");
                 return Version.Attributes["ProgramVersion"].Value;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return "0.0";
             }

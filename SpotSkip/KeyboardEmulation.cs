@@ -25,7 +25,7 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                new FileIO_Write().logError(ex);
+                new FileIO_Write().LogError(ex);
             }
         }
 
@@ -38,7 +38,7 @@ namespace SpotSkip
             }
             catch (Exception ex)
             {
-                new FileIO_Write().logError(ex);
+                new FileIO_Write().LogError(ex);
             }
         }
     }
