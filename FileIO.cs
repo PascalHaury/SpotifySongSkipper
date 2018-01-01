@@ -222,7 +222,7 @@ namespace SpotSkip
 
     class Settings
     {
-        private string ApplicatioonPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
+        private string ApplicationPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
         private string SettingsFilePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\Settings.xml";
 
         public bool createDefaultTable()
@@ -251,12 +251,14 @@ namespace SpotSkip
                     XmlAttribute StartSpotify = doc.CreateAttribute("StartSpotify");
                     XmlAttribute TimerInterval = doc.CreateAttribute("Interval");
                     XmlAttribute PlaySong = doc.CreateAttribute("PlaySong");
+                    XmlAttribute ProgramVersion = doc.CreateAttribute("ProgramVersion");
 
                     BlockListFile.Value = defaultVars.BlockListFilePath;
                     ErrorLogFile.Value = defaultVars.ErrorLogFilePath;
                     StartSpotify.Value = defaultVars.StartSpotify.ToString();
                     PlaySong.Value = defaultVars.PlaySong.ToString();
                     TimerInterval.Value = defaultVars.TimerInterval.ToString();
+                    ProgramVersion.Value = defaultVars.VersionNumber;
 
                     XmlNode docnode = doc.CreateXmlDeclaration("1.0", "utf-8", null);
                     doc.AppendChild(docnode);
@@ -278,6 +280,10 @@ namespace SpotSkip
 
                     Setting = doc.CreateElement("Timer");
                     Setting.Attributes.Append(TimerInterval);
+                    SettingsNode.AppendChild(Setting);
+
+                    Setting = doc.CreateElement("Version");
+                    Setting.Attributes.Append(ProgramVersion);
                     SettingsNode.AppendChild(Setting);
                     entries.AppendChild(SettingsNode);
 
@@ -311,6 +317,7 @@ namespace SpotSkip
             try
             {
                 Variables setVars = new Variables();
+                SettingsFilePath = setVars.SettingsFilePath;
                 if (File.Exists(SettingsFilePath))
                 {
                     XmlDocument xmlDoc = new XmlDocument();
@@ -364,12 +371,15 @@ namespace SpotSkip
                 XmlNode ErrorLog = xmlDoc.SelectSingleNode("Data/Settings/ErrorLogFile");
                 ErrorLog.Attributes["Path"].Value = ErrorLogFilePath.ToString();
 
-                XmlNode Settings = xmlDoc.SelectSingleNode("Data/Settings/Behaviour");
-                Settings.Attributes["StartSpotify"].Value = startSpotify.ToString();
-                Settings.Attributes["PlaySong"].Value = playSong.ToString();
+                XmlNode Behaviour = xmlDoc.SelectSingleNode("Data/Settings/Behaviour");
+                Behaviour.Attributes["StartSpotify"].Value = startSpotify.ToString();
+                Behaviour.Attributes["PlaySong"].Value = playSong.ToString();
 
                 XmlNode TimerInterval = xmlDoc.SelectSingleNode("Data/Settings/Timer");
                 TimerInterval.Attributes["Interval"].Value = Interval.ToString();
+
+                XmlNode VersionNumber = xmlDoc.SelectSingleNode("Data/Settings/Version");
+                VersionNumber.Attributes["ProgramVersion"].Value = setVars.VersionNumber;
 
                 XmlNode Skipped = xmlDoc.SelectSingleNode("Data/Logging/SongsSkipped");
                 Skipped.Attributes["SongsSkipped"].Value = songsSkipped.ToString();
@@ -386,6 +396,32 @@ namespace SpotSkip
                 return false;
             }
         }
+
+        public bool UpdateVersionNumber()
+        {
+            try
+            {
+                if (File.Exists(SettingsFilePath))
+                {
+                    Variables setVars = new Variables();
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.Load(SettingsFilePath);
+
+                    XmlNode Version = xmlDoc.SelectSingleNode("Data/Settings/Version");
+                    Version.Attributes["ProgramVersion"].Value = setVars.VersionNumber;
+                    
+                    xmlDoc.Save(SettingsFilePath);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                new FileIO_Write().logError(ex);
+                return false;
+            }
+        }
+
         /// <summary>
         /// Updates the log-Variables in the logfile
         /// </summary>

@@ -12,6 +12,7 @@ namespace SpotSkip
         private static bool storage6 = false;
         private static int storage7 = 500;
         private static string storage8 = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\SpotSkip\Settings.xml";
+        private static string storage9 = "0.8";
 
 
         /// <summary>
@@ -132,10 +133,17 @@ namespace SpotSkip
             {
                 return storage8;
             }
-            set
+        }
+
+        public string VersionNumber
+        {
+            get
             {
-                storage8 = value;
+                return storage9;
             }
         }
     }
 }
+
+#warning Don't forget to change the Version number!
+

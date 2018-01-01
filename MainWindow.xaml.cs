@@ -51,6 +51,7 @@ namespace SpotSkip
                 this.Title = "SpotSkip";
                 SettingsManager.createDefaultTable();
                 SettingsManager.readSettings();
+                SettingsManager.UpdateVersionNumber();
                 localSpotifySongChecker.Interval = new TimeSpan(0, 0, 0, 0, globalVars.TimerInterval);
                 oldInterval = globalVars.TimerInterval;
                 localSpotifySongChecker.Tick += localSpotifySongChecker_Tick;
